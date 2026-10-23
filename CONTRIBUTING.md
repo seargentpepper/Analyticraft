@@ -22,5 +22,5 @@ Analyticraft utiliza una arquitectura híbrida compuesta por un backend nativo e
 ### Puesta en Marcha:
 1. Clona el repositorio:
    ```bash
-   git clone [https://github.com/TU_USUARIO/Analyticraft.git](https://github.com/TU_USUARIO/Analyticraft.git)
+   git clone [https://github.com/seargentpepper/Analyticraft.git)])
    cd Analyticraft
