@@ -1,0 +1,309 @@
+# 📝 Changelog - Analyticraft
+
+Todas las modificaciones notables, adiciones funcionales y mejoras de diseño de este proyecto serán registradas en este archivo.
+
+El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/), y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.8.1] - 2026-10-24
+
+### 🐛 Corregido (Diagnóstico Ágil de Catálogo DuckDB, Visibilidad Contextual y Estabilidad HMR)
+- **Persistencia de Singleton DuckDB en `window`:**
+  - Se mitigó la desincronización entre React Fast Refresh y DuckDB-Wasm mediante el almacenamiento de la instancia en `window.__analyticraft_duckdb__` y `window.__analyticraft_conn__`. Las actualizaciones HMR en desarrollo ya no destruyen el WebWorker ni purgan las tablas registradas.
+- **Manejo Resiliente de Error de Catálogo (`sqlite_temp_master`):**
+  - `ChartCard.tsx` ahora detecta amigablemente si una tabla referenciada no existe en la sesión activa, sustituyendo el error crudo de base de datos por una caja informativa guiada con botón para reimportar o reasignar la fuente.
+- **Aislamiento Estricto de Pestaña Contextual `Formato`:**
+  - La pestaña `Formato VISUAL` del Ribbon ahora se renderiza única y exclusivamente en la **Vista de Informe** (`activeView === "report"`) cuando existe un visual seleccionado (`selectedChartId !== null`), impidiendo que aparezca fuera de contexto en la Vista de Modelo o Vista de Datos.
+- **Conmutador Centralizado de Vistas (`handleSwitchView`):**
+  - Las transiciones de vista (por atajos `Ctrl+1/2/3` o por la barra lateral izquierda) reajustan inteligentemente la pestaña activa de la cinta a `"modeling"` o `"home"`.
+- **Corrección Tipográfica en Barra de Herramientas del Modelo:**
+  - Eliminado el glifo duplicado `+` en el botón de nueva relación (`<span>Nueva Relación</span>`), resolviendo la etiqueta redundante `+ + Nueva Relación`.
+- **Ampliación de Nodos Relacionales (`CARD_WIDTH: 250px`):**
+  - Aumentado el ancho mínimo de las tarjetas a 250px y añadidos atributos `title` en cabeceras y pastillas de sugerencia para evitar truncamientos excesivos de nombres (`sample_clientes_p...`).
+- **Cargador Rápido de Datos de Muestra PyME (`sampleData.ts`):**
+  - Botón directo `Muestra PyME` en el Ribbon (`Inicio` y `Archivo`) y en el lienzo vacío para hidratar al instante `sample_ventas_pyme` y `sample_clientes_pyme` con sus relaciones en memoria.
+- **Documentación Técnica (Página 12 de la Wiki):**
+  - Publicada la **Guía de Diagnóstico Rápido y Resolución Ágil de Errores** con la matriz oficial de incidencias, comandos de consola DevTools para DuckDB y protocolo de 5 pasos para desarrolladores y LLMs.
+
+---
+
+## [0.8.0] - 2026-10-24
+
+### 🚀 Añadido (Fase 8: Asistente Newbie-Friendly en el Modelador Relacional)
+- **Algoritmo Heurístico de Detección de Relaciones (`✨ Auto-Detectar`):**
+  - Normalización léxica de nombres de columnas descartando prefijos (`id_`, `cod_`, `pk_`, `fk_`) y sufijos (`_id`, `_key`, `_code`).
+  - Detección semántica de coincidencias cruzadas entre nombres de columnas y nombres de tablas o columnas homólogas.
+  - Verificación estricta de compatibilidad de tipos en DuckDB (familias numéricas vs. familias textuales).
+  - Puntuación de confianza (`Alta` / `Media`) y descarte automático de relaciones ya activas.
+- **Aura Luminosa y Banner de Sugerencias Flotante:**
+  - Resplandor pulsante dorado/ámbar (`.column-detected-aura` con animación `@keyframes pulse-aura`) y micro-destellos en las columnas sugeridas.
+  - Banner interactivo flotante (`.model-suggestions-banner`) con listado descriptivo de candidatos, botón `Conectar` por relación y botón de unión en masa `Conectar Todas (X)`.
+- **Auto-Alineación Jerárquica en Cascada (`Cascade Cascada`):**
+  - Motor de layout que asigna coordenadas automáticas `{x, y}` por nivel relacional: dimensiones en la fila superior (`y = 60`) con espaciado regular de 300px y tablas de hechos en la fila inferior (`y = 420`), emulando el flujo estándar de modelado analítico descendente.
+- **Tooltips y Explicaciones Pedagógicas en Lenguaje Natural:**
+  - Tooltips accesibles con descripción contextual en los extremos de cardinalidad `1` (*"Cada registro es único en esta tabla"*), `*` (*"Pueden existir múltiples registros asociados a la misma clave"*) y la flecha central de dirección de filtro (`1 : * ──▶`).
+  - Tarjeta de resumen en lenguaje natural en el panel inspector: *"Un registro en Stores puede asociarse a múltiples transacciones en Sales. El filtrado fluye desde Stores hacia Sales."*
+- **Modal de Edición de JOIN e Inversión de Dirección (`EditJoinModal`):**
+  - Selector visual para alternar entre `LEFT JOIN` (Recomendado) e `INNER JOIN` (Estricto).
+  - Botón de inversión ergonómica de dirección (`⇄ Invertir Dirección`) para conmutar tabla izquierda/derecha y cardinalidad.
+  - Selectores desplegables para ajustar columnas fuente y destino.
+  - Regeneración reactiva en DuckDB: descarte inmediato de la vista previa con `DROP VIEW IF EXISTS` y creación atómica de la nueva vista con `createVirtualRelationView` (<10ms).
+
+---
+
+## [0.7.0] - 2026-10-24
+
+### 🚀 Añadido (Fase 7: Vista de Modelo Relacional - Grafo de Tablas, Drag & Drop y Vistas Virtuales)
+- **Lienzo de Grafo Interactivo de Esquema en Estrella (`ModelView.tsx`):**
+  - Espacio bidimensional infinito con fondo industrial workbench y cuadrícula matricial de 20px.
+  - Nodos flotantes reposicionables mediante arrastre manual desde la cabecera de la tabla.
+  - Controles de zoom interactivo (50% a 160%), porcentaje numérico y restablecimiento al 100%.
+  - **Auto-Alineación en Estrella (`Auto-Alinear`):** Algoritmo que ubica la tabla de hechos en el centro (`x: 440, y: 200`) y distribuye las dimensiones radialmente en un círculo uniforme.
+- **Diferenciación Cromática Heurística:**
+  - Tablas de Hechos (Fact Tables): Cabecera con gradiente azul/cian neón (`#007acc`), borde luminoso y pastilla `HECHOS`.
+  - Tablas de Dimensiones (Dim Tables): Cabecera en tono dorado/ámbar (`#cca700`), borde sutil y pastilla `DIMENSIÓN`.
+- **Creación Visual de Relaciones por Drag & Drop:**
+  - Arrastre directo de cualquier columna hacia una columna de otra tabla con retroalimentación visual (`.drop-active`).
+  - Detección inteligente de cardinalidad e instanciación inmediata de la relación en memoria y DuckDB.
+- **Conectores Visuales SVG:**
+  - Curvas cúbicas de Bézier conectando las alturas exactas de las columnas relacionadas.
+  - Pastilla de cardinalidad `1` (PK) en el extremo de la dimensión y `*` (FK) en el extremo de los hechos.
+  - Marcador direccional de filtro en el centro (`1 : * ──▶`).
+  - Panel inspector flotante al hacer clic en el conector con botón de eliminación rápida (`🗑️`).
+- **Motor de Vistas Virtuales en DuckDB con Deduplicación:**
+  - Introspección previa con `PRAGMA table_info` para detectar y evitar errores de colisión de nombres de columnas (`Duplicate column name`) al ejecutar `CREATE VIEW AS SELECT s.*, t.*`.
+  - Descarte seguro con `DROP VIEW IF EXISTS` sin modificar los archivos físicos CSV.
+
+---
+
+## [0.6.1] - 2026-10-24
+
+### 🚀 Añadido (Segmentadores Power BI, Inversión de Ejes X ⇄ Y y Múltiples Filtros Locales)
+- **Visual "Segmentador de Datos" (Slicer):**
+  - Incorporación del tipo `slicer` en la galería de Visualizaciones y lienzo general.
+  - Renderizado interactivo en tarjeta (`ChartCard.tsx`) con buscador de valores en vivo, listado de opciones con conteo de registros, selector conmutador y botón de limpieza inmediata (`🧹 Limpiar`).
+  - Filtrado reactivo multitarjeta: Al hacer clic en un elemento del segmentador, se actualiza el store de filtros globales y se segmentan en tiempo real todos los gráficos dependientes en DuckDB.
+- **Inversión Rápida de Ejes (Swap X ⇄ Y):**
+  - Botón ergonómico `Invertir Ejes (X ⇄ Y)` en el panel de Visualizaciones entre Eje X y Eje Y para alternar dimensiones y métricas con un solo clic.
+  - Corrección automática e inteligente de funciones agregadas (`COUNT` si la nueva métrica es texto, `SUM` si es numérica).
+  - Pastillas de arrastre bidireccionales con botones rápidos de asignación (`→ Y` y `← X`).
+- **Múltiples Filtros Locales con Introspección de DuckDB:**
+  - Drop-zone multi-filtro y selector desplegable para añadir N filtros locales por objeto visual.
+  - Conmutador On/Off por filtro para pausar/activar individualmente sin perder la configuración.
+  - Introspección reactiva de datos: DuckDB consulta `SELECT DISTINCT` para sugerir los valores reales existentes en chips interactivos.
+  - Botones de gestión rápida: eliminación individual (`✕`), borrado total (`🧹 Borrar todo`) y conmutación en bloque.
+- **Backend DuckDB Unificado:**
+  - Inyección de todas las condiciones de filtros locales activos en la cláusula `WHERE` de `ChartCard.tsx`.
+  - Badge visual de estado `[ 🔍 X filtro(s) ]` en la cabecera de las tarjetas con filtros locales.
+
+---
+
+## [0.6.0] - 2026-10-24
+
+### 🚀 Añadido (Fase 6: Paneles Laterales Acoplables a la Derecha - Visualizations & FIELDS con Drag & Drop)
+- **Panel Lateral "Campos" (FIELDS / Datos):**
+  - **Acordeón Colapsable de Tablas:** Despliegue independiente por tabla con chevrons interactivos, conteo real de filas (`X filas`), icono de tipo de tabla y botón directo de **Hot Swap (↻)** para actualizar el CSV de forma atómica.
+  - **Clasificación Cromática de Columnas:** Iconos distintivos según tipo de dato inferido por DuckDB: `#` numérico (verde/cian), `Abc` texto (azul), `📅` fecha/tiempo (ámbar) y `☑` booleano (púrpura).
+  - **Buscador Rápido de Columnas:** Campo de búsqueda en vivo con botón de borrado inmediato (`✕`) para filtrar campos a lo largo de todas las tablas cargadas.
+  - **Gestor de Relaciones (JOINs):** Sección integrada con vistas relacionales activas y botón de descarte seguro.
+- **Panel Lateral "Visualizaciones":**
+  - **Matriz de Tipos de Gráfico:** Galería superior interactiva (Barras, Líneas, Circular, Área, KPI, Tabla, Anillos de Actividad). Permite transformar la tarjeta seleccionada en un clic o insertar un gráfico nuevo directamente.
+  - **Subpestaña `Construir` (`Build Visual`):** Zonas de colocación (`dropzone-slot`) reactivas con soporte Drag & Drop nativo (HTML5) para **Eje X (Dimensión)**, **Eje Y (Métrica + selector de funciones: `SUM`, `AVG`, `COUNT`, `MAX`, `MIN`)** y **Filtro Local**.
+  - **Subpestaña `Formato` (`Format Visual`):** Configuración unificada de títulos, interruptores On/Off para leyendas superiores, notas al pie técnicas y editor de texto descriptivo.
+- **API de Arrastre Tipada (`DraggedFieldPayload`) & Constructor SQL Reactivo:**
+  - Transferencia inmutable del payload `{ tableName, columnName, dataType }` durante eventos de arrastre.
+  - **Arrastre Directo al Canvas:** Soltar una columna en el lienzo vacío crea de forma autónoma una tarjeta preconfigurada con ese campo.
+  - **Arrastre a Tarjetas Existentes:** Soltar un campo sobre una tarjeta (`ChartCard.tsx`) activa un resplandor luminoso cian (`drag-target-active`) y actualiza la métrica o dimensión al vuelo.
+  - **Ensamblado SQL Vectorizado:** Ejecución automática de consultas `SELECT dim, agg(metric) FROM table GROUP BY dim ORDER BY val DESC LIMIT 50;` en DuckDB-Wasm con latencia <16ms.
+- **Ergonomía de Escritorio Power BI Desktop:**
+  - Desmantelamiento de la antigua barra lateral izquierda de tablas en el Informe, extendiendo el lienzo horizontalmente desde el conmutador de 3 vistas hasta el muelle derecho.
+  - Riel de botones colapsables en el extremo derecho (`docked-rail-tab`) para ocultar/mostrar independientemente los paneles de Visualizaciones y Campos.
+- **Documentación Técnica:**
+  - Creación de **Página 10: Paneles Laterales de Visualizaciones y Campos (Drag & Drop y Constructor SQL Reactivo)** en la `Wiki/`.
+  - Actualización de `Wiki/Índice de la Wiki.md` y `ROADMAP.md` (Fase 6 completada).
+
+---
+
+## [0.5.1] - 2026-10-24
+
+### 🧹 Refactorizado & 🛡️ Deduplicación de UI (Principio de Responsabilidad Única - SSI)
+- **TitleBar Superior Limpia y Desacoplada:**
+  - Supresión de controles de ventana mock (`─`, `□`, `✕`) y botón de ayuda `?` redundante en la cabecera superior.
+  - Sustitución del `<input>` editable del proyecto por un `<span className="project-name-label">` de solo lectura y contraste balanceado.
+- **Deduplicación Integral del Ribbon Menu:**
+  - **Pestaña Archivo:** Remoción del grupo `Publicación` (`Exportar HTML`), centralizando la exportación en `Inicio > Compartir`. Renombrado de `Guía CSV` a `¿Cómo traer tus datos?` bajo `Documentación`.
+  - **Pestaña Inicio:** Desmantelamiento de grupos redundantes `Insertar Visuales` (canónico en pestaña `Insertar`) y `Modelado (Relaciones JOIN)` (canónico en `Modelado` y riel lateral). Consolidación exclusiva de `Portapapeles`, `Datos`, `Diseño` y `Compartir`.
+  - **Pestaña Modelado:** Supresión del botón duplicado `Crear JOIN`, conservando accesos a `Vista Modelo` y `Vista Datos`.
+  - **Pestaña Ver:** Eliminación del grupo `Vistas del Sistema` que duplicaba el riel lateral izquierdo `Left View Rail` permanente a 40px de distancia.
+- **Optimización del Espacio Vertical del Canvas:**
+  - La barra horizontal `.filter-bar` ahora es condicional y reactiva: se oculta automáticamente cuando no hay filtros activos (`globalFilters.length === 0`), devolviendo 40px de espacio vertical neto al lienzo.
+
+### 🐛 Corregido (Bug Fixes & Estabilidad)
+- **Z-Index y Overflow del Selector de Temas:**
+  - Se corrigió el recorte del menú flotante de temas ajustando `.ribbon-command-stage` a `overflow: visible; position: relative; z-index: 100;` y dotando al menú popover de `z-index: 9999;`, garantizando visibilidad nítida por encima del lienzo.
+- **Empty State Card UI Humanizada para Errores DuckDB:**
+  - Intercepción pedagógica de errores de tipo SQL (`Binder Error: Cannot compute sum(VARCHAR)`, incompatibilidad de tipos) en `ChartCard.tsx`. Despliegue de aviso visual amigable explicando que métricas cuantitativas (`SUM`, `AVG`) requieren campos numéricos y guiando al analista en la reasignación de ejes.
+- **Sincronización Reactiva de Pie de Tarjeta:**
+  - Corrección en el botón toggle de la pestaña `Formato` para evaluar `selectedChart.showDescription !== false` y respeto estricto en el renderizado de `ChartCard.tsx`.
+
+### 📚 Documentación Técnica y Directivas LLM
+- **Nueva Página 9 de la Wiki:** *Guía Anti-Duplicidad y Principio de Responsabilidad Única en UI (Directiva para Desarrolladores y LLMs)*, con la "Prueba del Espejo de Comandos" y la matriz oficial de ubicaciones canónicas.
+- **Actualización de Página 8:** Corrección del diagrama Mermaid del Ribbon eliminando botones duplicados y reflejando la distribución de responsabilidad única.
+- **Actualización de Índice de la Wiki y Roadmap:** Inclusión de la Página 9 en `Wiki/Índice de la Wiki.md` y registro del Sprint 5.1 en `ROADMAP.md`.
+
+---
+
+## [0.5.0] - 2026-10-24
+
+### 🚀 Añadido & ⚙️ Refactorizado (Fase 5: Cinta de Opciones Contextual, Despachador de Comandos y Portapapeles)
+- **Cinta de Opciones Plegable (Power BI Style Ribbon Menu):**
+  - **Tira de Pestañas Superiores (`.ribbon-tabs-strip`):** Navegación organizada en 6 pestañas con micro-iconos y tooltips:
+    - 📁 **Archivo:** Gestión de proyectos (*Nuevo*, *Abrir*, *Guardar*), *Exportar HTML* standalone y enlaces directos a la *Wiki Oficial* y la *Guía CSV*.
+    - 🏠 **Inicio:** Centro neurálgico con grupos para *Portapapeles* (Pegar, Copiar, Duplicar, Eliminar), *Datos* (Obtener CSV, Hot Swap, Actualizar Todo), *Insertar Visuales Rápidos* (Barras, Líneas, Torta, KPI, Tabla, Área), *Modelado* (Relaciones JOIN) y *Compartir* (Exportar HTML).
+    - ➕ **Insertar:** Galería exhaustiva de visualizaciones y controles de segmentación (*+ Filtro Global* y *+ Tarjeta*).
+    - 🕸️ **Modelado:** Accesos para creación de uniones en estrella (`CREATE VIEW`), diagrama de *Vista Modelo*, inspección en *Vista Datos* y guía de esquema CSV.
+    - 👁️ **Ver:** Conmutador de vistas del sistema (*Informe*, *Datos*, *Modelo*), selector integrado de temas para tarjetas (17 perfiles) y soporte con glosario analítico.
+    - 🎨 **Formato (Pestaña Contextual Reactiva):** Se ilumina en color ámbar con distintivo `Visual` cuando hay una tarjeta seleccionada en el lienzo. Permite transformar el tipo de visual en 1 clic, alternar leyendas y descripciones al pie, editar el título directamente en un input inline de la cinta, y ejecutar duplicaciones o eliminaciones rápidas.
+  - **Colapso Vertical de la Cinta (`Ctrl+F1`):** Botón chevron en el extremo derecho de la tira de pestañas que permite ocultar el escenario de comandos para maximizar el área de visualización del informe al 100%.
+- **ActionDispatcher Centralizado (Command Pattern):**
+  - Todas las operaciones de la cinta se canalizan a través de `dispatchAction(action: RibbonAction)` de forma tipada, desacoplando los componentes visuales de las mutaciones de estado y las llamadas a DuckDB.
+  - **Historial Inmutable Sincronizado:** Cualquier acción que altere tarjetas o filtros dispara automáticamente una captura previa con `recordSnapshot()`, garantizando reversibilidad total con `Ctrl+Z` (Deshacer) y `Ctrl+Y` (Rehacer).
+- **Motor de Portapapeles en Memoria (Clipboard Engine):**
+  - Estructura desacoplada `clipboard: ChartConfig | null` que clona profundamente la configuración métrica de la tarjeta activa.
+  - Soporte de atajos nativos de teclado:
+    - `Ctrl+C`: Copia la tarjeta seleccionada al portapapeles.
+    - `Ctrl+V`: Pega una nueva tarjeta clonada con UUID generado y título `(Copia)`.
+    - `Ctrl+D`: Duplica directamente la tarjeta seleccionada.
+    - `Delete` / `Del`: Elimina la tarjeta activa guardando snapshot.
+- **Unificación y Limpieza Ergonómica:**
+  - Se eliminó la antigua `.sub-toolbar` intermedia en la Vista de Informe, centralizando todos los controles en la Cinta de Opciones superior accesible a lo largo de toda la aplicación.
+- **Documentación Técnica:**
+  - Creación de **Página 8: Cinta de Opciones Contextual (Ribbon Menu), Despachador de Comandos y Portapapeles** en la carpeta `Wiki/`.
+  - Integración de la Página 8 en el modal interactivo de la Wiki dentro de la aplicación.
+  - Actualización de `Wiki/Índice de la Wiki.md` y `ROADMAP.md` (Fase 5 completada).
+
+---
+
+## [0.4.1] - 2026-10-24
+
+### 🎨 Refactorizado & 🐛 Corregido (Fase 4: Ergonomía Gestalt, Desacoplamiento de Modales y Paginación DuckDB)
+- **Quick Access Toolbar y Limpieza de TitleBar:**
+  - El botón **Abrir** (`FolderOpen`) ahora forma parte de la barra de acceso rápido superior izquierda junto a **Guardar**, **Deshacer** y **Rehacer**.
+  - Se eliminaron los botones redundantes con texto `[ Abrir ]` y `[ Guardar ]` de la barra superior derecha.
+  - Se unificó toda la iconografía del shell a trazo fino uniforme (`strokeWidth={1.5}` / outline en Lucide).
+- **Reorganización de la Sub-Barra de Herramientas bajo Principios de Gestalt:**
+  - **Bloque Izquierdo (Datos y Modelado):** `[ + Agregar Gráfico ]`, `[ Modelador Relacional (JOIN) ]` y `[ Refrescar Consultas ]`.
+  - **Bloque Derecho (Configuración, Soporte y Salida):** `[ Selector de Tema ]`, `[ Wiki ]`, `[ Guía Exportar CSV ]` y `[ Exportar .HTML ]`.
+  - Corrección tipográfica en el botón `+ Agregar Gráfico` (eliminada la suma duplicada `+ +`).
+  - Eliminación de la etiqueta de texto redundante `"Tema Gráficos: [Tema]"` en la sub-barra.
+- **Atenuación Visual del Botón de Exportación:**
+  - Se rediseñó el botón `Exportar .HTML`: se reemplazó el verde brillante saturado por un estilo secundario sobrio (fondo `#1c2b20`, borde `#2e7d32` y texto verde suave `#81c784`) para no competir visualmente con los gráficos en pantalla.
+- **Desacoplamiento de Enrutamiento de Modales (Bug Fix):**
+  - El botón **Guía Exportar CSV** ahora dispara un diálogo modal dedicado e independiente (`showCsvGuideModal`), resolviendo el bug de colisión que forzaba a la Wiki general a quedar estancada en la página 5.
+- **Paginación e Introspección en Vista de Datos (Data View):**
+  - Consultas asíncronas paralelas con DuckDB: `SELECT COUNT(*) AS total` para conocer el volumen total de filas reales y `SELECT * FROM "tabla" LIMIT 100 OFFSET ?` para navegación de alta densidad con latencia <16ms.
+  - Paginador interactivo con botones `[ ◀ Anterior ]`, `[ Siguiente ▶ ]`, contador de página y resumen de registros mostrados.
+- **Ampliación de Documentación y Wiki:**
+  - Creación de **Página 7: Ergonomía de UI, Principios de Gestalt y Arquitectura de Diálogos** en la carpeta `Wiki/`.
+  - Incorporación de las Páginas 6 y 7 en el lector interactivo de la Wiki del Studio.
+  - Actualización de `Wiki/Índice de la Wiki.md` y `ROADMAP.md` (Fase 4 marcada como completada).
+
+---
+
+## [0.4.0] - 2026-10-24
+
+### 🚀 Añadido (Fase 3: Shell Desktop y Barra Lateral de 3 Vistas)
+- **Shell Desktop Power BI y Left View Switcher (3 Modos):**
+  - **Riel lateral de navegación (48px):** selector visual directo estilo Power BI Desktop entre 3 vistas de trabajo:
+    - 📊 **Vista de Informe (Report View):** Lienzo analítico con tarjetas de visualización interactivas (ECharts), panel de propiedades, ribbon de herramientas y filtros reactivos.
+    - 📋 **Vista de Datos (Data View - Solo Lectura):** Explorador tabular de alta densidad con selector lateral de esquemas de tablas DuckDB y previsualización de las primeras 100 filas con tipos de dato explícitos (`[VARCHAR]`, `[BIGINT]`, `[DOUBLE]`). Incluye botón de recarga rápida y Hot Swap directo por tabla.
+    - 🕸️ **Vista de Modelo (Model View):** Lienzo interactivo de diseño relacional en esquema de estrella con tarjetas de entidades (nodos Hechos vs. Dimensiones), detección visual de llaves vinculadas y administración de vistas virtuales (`CREATE/DROP VIEW`).
+  - **TitleBar Superior con Quick Access Toolbar:**
+    - Botones compactos de acceso rápido: *Guardar Proyecto* (`Ctrl+S`), *Deshacer* (`Ctrl+Z`) y *Rehacer* (`Ctrl+Y`).
+    - Pastilla central con nombre de proyecto activo editable (`.analyticraft`).
+    - Glifos mock de control de ventana (`─`, `□`, `✕`).
+- **Motor de Atajos Globales de Teclado:**
+  - Listener nativo global para `Ctrl+1` / `Cmd+1` (Informe), `Ctrl+2` / `Cmd+2` (Datos), `Ctrl+3` / `Cmd+3` (Modelo) y `Ctrl+S` (Guardar).
+  - Pila de historial en memoria para `Ctrl+Z` (Deshacer) y `Ctrl+Y` (Rehacer) con notificaciones toast en pantalla.
+  - Guarda anti-colisión para no interceptar escritura cuando el foco se encuentra en campos de texto, inputs o selects.
+- **Ciclo de Vida Condicional y Optimización de CPU:**
+  - Desmontaje y destrucción de instancias de Apache ECharts al alternar a la Vista de Datos o de Modelo, liberando ciclos de procesador y memoria de GPU/Canvas en segundo plano.
+- **Banner Pedagógico Permanente de Datos:**
+  - Aviso contextual en la Vista de Datos reforzando la regla arquitectónica de **Solo Lectura** (el CSV físico como fuente única de verdad) y guiando al usuario al uso de *Hot Swap CSV (↻)* para modificaciones.
+- **Ampliación de Documentación y Wiki:**
+  - Creación de `Wiki/Página 6: Arquitectura de UI y Contratos de Backend (Guía para Desarrolladores y LLMs)` con diagramas de flujo Mermaid, contratos de DuckDB y registro de ingeniería backend (Sección 7).
+  - Renombrado de `Wiki/README.md` a `Wiki/Índice de la Wiki.md`.
+  - Reestructuración completa de `ROADMAP.md` en 18 fases simétricas (UI + Backend) y actualización de `CONTRIBUTING.md`.
+
+---
+
+## [0.3.0] - 2026-10-24
+
+### ✨ Añadido
+- **Catálogo ampliado de temas para tarjetas (17 en total, solo afectan a las tarjetas, no a la UI del Studio):**
+  - **8 nuevos perfiles multicolor** (cada categoría recibe su propio color): *Atardecer*, *Arrecife*, *Aurora Boreal*, *Pastel*, *Retro 80s*, *Otoño*, *Cyberpunk* y *Tropical*.
+  - **4 temas inspirados en iWork/Numbers:** *Estándar* (`#007AFF`, `#34C759`, `#FF9500`, `#FF2D55`, `#AF52DE`, `#5AC8FA`), *Mono/Editorial*, *Pastel/Soft* y *Tierra/Cálido*, con barras de esquinas redondeadas y fondo oscuro de sistema.
+  - **Tema "Anillos de Actividad (Fitness)":** fondo negro puro y gradientes neón para recordar y diferenciar anillos — Move `#FA114F→#FF5E3A`, Exercise `#9EE600→#00E887`, Stand `#00E5FF→#00A3FF`.
+  - El menú de temas ahora está **agrupado por familias** y muestra una **muestra de color** de cada paleta.
+- **Nuevo gráfico "Anillos" (Activity Rings):** anillos concéntricos con extremos redondeados y pista de fondo (máx. 4 categorías; la mayor = 100 %). Incluye leyenda con color y valor.
+- **Lector Interactivo de la Wiki en el Studio:** Botón **"Wiki"** y botón **"Guía Exportar CSV"** accesibles directamente desde la barra de herramientas para culturizar a usuarios y nuevos colaboradores sin salir de la app.
+- **Reorganización y Expansión de la Wiki (`/Wiki`):**
+  - **Página 5 (Nueva):** *Filosofía de Datos (Por qué CSV y Guía de Exportación)* detallando por qué se prohíbe XLSX/JSON/XML en el motor y cómo exportar desde Excel, Google Sheets, Numbers, JSON y SQL.
+  - Limpieza de las Páginas 1 a 4 con redacción actualizada a la versión actual y creación de `Wiki/Índice de la Wiki.md` como índice general.
+  - Simplificación y estilización del `README.md` raíz del proyecto.
+- **Registro central de temas** (`src/lib/themes.ts`) y **constructor de opciones compartido** (`src/lib/chartOptions.ts`): el Studio y el `.html` exportado renderizan exactamente igual.
+
+### 🔄 Cambiado
+- El **reporte `.html` exportado ahora respeta el tema activo** (antes siempre salía con el estilo oscuro por defecto) y soporta el gráfico de anillos.
+- Documentación (`README.md`, `ROADMAP.md`, `CONTRIBUTING.md`) actualizada con la estrategia para "clonar" estilos de Apple sin usar herramientas exclusivas de la plataforma y con el plan de las Fases 2 a 6.
+
+### 🔒 Seguridad
+- El exportador HTML ahora **escapa** títulos, descripciones y valores de datos y serializa el JSON embebido de forma segura (evita inyección de HTML/`</script>` a partir de contenido de un CSV o de textos del usuario).
+
+---
+
+## [0.2.0] - 2026-10-24
+
+### ✨ Añadido (Usabilidad, Modelado y Personalización)
+- **Modelador Relacional en Modal con Guía Visual:**
+  - Asistente explicativo para vincular tablas CSV mediante llaves foráneas lógicas (JOINs en memoria con DuckDB).
+  - Previsualización del tipo de relación (Hechos vs. Dimensiones).
+  - Botón de eliminación directa (`🗑️`) para cualquier vista relacional creada si no aporta valor o se desea descartar.
+- **Personalización de Tarjetas (Cards):**
+  - Control para mostrar u ocultar la leyenda del gráfico.
+  - Campo de pie de nota / descripción explicativa que describe exactamente qué cuentan o miden los datos mostrados.
+- **Sistema Global de Temas para Gráficos:**
+  - Selector unificado en la barra de herramientas que aplica paletas y tipografías a todas las tarjetas del lienzo al unísono:
+    - **Corporativo:** Azules ejecutivos y grises pulidos.
+    - **Geek / Terminal:** Fondo negro azabache, verdes fósforo y blancos de alto contraste.
+    - **Colorido (Vibrant):** Paleta multicolor energética.
+    - **All-Blue:** Gama monocromática azul profesional.
+    - **All-Pink:** Gama moderna en magentas y rosas fucsia.
+- **Documentación:**
+  - Creación del presente archivo `CHANGELOG.md`.
+  - Nueva sección detallada en `README.md` explicando cómo funciona el Modelador Relacional y cómo interactúan las tablas vinculadas.
+
+---
+
+## [0.1.5] - 2026-10-24
+
+### 🎨 Mejorado
+- **Rediseño UI Estilo Adobe / GIMP:**
+  - Transición a paleta en tonos grises oscuros industriales (`#1e1e1e`, `#252526`, `#2d2d2d`).
+  - Textos en blanco puro (`#ffffff`) y pesos semibold/bold para máxima legibilidad independientemente del modo oscuro del navegador.
+- **Sub-Menus y Banners Informativos:**
+  - Cintas de herramientas secundarias y división de pestañas (*Campos y Datos* vs. *Tipo de Visualización*).
+  - Explicación guiada en cada campo (Dimensión, Métrica, Agregación).
+- **Hot Swap de Datos:** Reemplazo atómico de CSV en caliente sin romper configuraciones existentes.
+- **Filtros Globales Dinámicos:** Barra multivariable con cláusulas `WHERE` reactivas en DuckDB.
+- **Persistencia de Proyectos:** Guardado y apertura en formato `.analyticraft`.
+
+---
+
+## [0.1.0] - 2026-10-24
+
+### 🚀 Lanzamiento Inicial (MVP)
+- Base de escritorio nativa con **Tauri v2 + Rust**.
+- Frontend reactivo con **React 19 + TypeScript + Vite**.
+- Motor analítico vectorizado **DuckDB en memoria**.
+- Visualizaciones interactivas con **Apache ECharts** (Barras, Líneas, Áreas, Donuts, KPIs y Tablas).
+- Exportador de reportes a un archivo único `.html` autocontenido para compartir sin dependencias.
