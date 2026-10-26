@@ -116,7 +116,8 @@ pnpm run build
 ## Documentación y Enlaces
 
 - **[Índice de la Wiki](./docs/Índice%20de%20la%20Wiki.md):** Base de conocimiento central con las 12 páginas de arquitectura, flujos de datos y contratos técnicos del sistema.
-- **[ROADMAP.md](./ROADMAP.md):** Hoja de ruta técnica en 18 fases acopladas hacia la suite completa.
+- **[ROADMAP.md](./ROADMAP.md):** Hoja de ruta activa con los próximos cambios planificados (*Coming Next*, hacia v0.9 y v1.0).
+- **[ROADMAP_DONE.md](./ROADMAP_DONE.md):** Historial técnico completo de todas las fases y mejoras completadas (*Done*, de v0.1 a v0.8.3).
 - **[CONTRIBUTING.md](./CONTRIBUTING.md):** Directrices de desarrollo, arquitectura de componentes y checklist para Pull Requests.
 - **[CHANGELOG.md](./CHANGELOG.md):** Registro histórico detallado de versiones y cambios notables.
 
