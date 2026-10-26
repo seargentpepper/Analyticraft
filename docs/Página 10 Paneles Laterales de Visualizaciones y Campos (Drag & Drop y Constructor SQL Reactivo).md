@@ -36,7 +36,7 @@ graph TD
 El panel de campos representa el catálogo analítico activo disponible en la sesión de DuckDB.
 
 ### 2.1. Anatomía del Componente (`FieldsPanel.tsx`)
-- **Cabecera Operativa:** Muestra el contador total de tablas (`X tablas`) y botón de colapso rápido.
+- **Cabecera Operativa:** Muestra el contador total de tablas (`X tablas`), botón conmutador global de **Expandir/Colapsar Todo (`ChevronsUpDown`)** para minimizar o desplegar todas las tablas del catálogo en un clic, y botón de repliegue del panel completo.
 - **Buscador en Vivo (`.fields-search-box`):** Filtro de texto instantáneo con botón de limpieza (`✕`). Permite localizar columnas y métricas rápidamente entre decenas de tablas cargadas.
 - **Acordeón Jerárquico por Tabla:**
   - Chevron interactivo para colapsar/expandir (`ChevronDown` / `ChevronRight`).

@@ -182,6 +182,50 @@ Cuando un proyecto escala a más de 10 tablas y decenas de relaciones (ej. 70 re
 ### 6.6. Persistencia del Layout de Posiciones en Proyecto (`modelLayout`)
 Cada movimiento manual de tarjetas o reordenamiento automático mediante "Organizar Vista", "Estrella" o "Cascada" actualiza el mapa de posiciones serializado en el objeto de proyecto `AnalyticraftProject.modelLayout`. Al guardar con `Ctrl+S` o exportar el proyecto empaquetado, la disposición visual de las tablas queda inmortalizada y se restaura idénticamente en sesiones futuras.
 
+### 6.7. Scroll Vertical Interno y Colapso Individual por Tarjeta
+Para modelos analíticos con tablas de muchos atributos o múltiples tablas simultáneas, las tarjetas incorporan ergonomía avanzada de visualización:
+- **Scroll Vertical en Lista de Columnas (`max-height: 250px; overflow-y: auto`):**
+  - Todas las columnas de la tabla se encuentran disponibles para inspección y arrastre sin que la tarjeta crezca indefinidamente ni se salga del encuadre visual.
+  - La barra de scroll personalizada se funde con la paleta oscura de la aplicación para una navegación suave.
+- **Colapso Individual a Cabecera:**
+  - Cada tarjeta dispone de un conmutador chevron en su esquina superior izquierda. Al presionarlo, la tarjeta se compacta a una altura mínima de 36px, ocultando la lista de columnas y pie de página.
+  - El conteo resumido de registros se traslada a la barra de título (`X r`).
+  - Las curvas de relación SVG se adaptan de inmediato reanclándose matemáticamente al centro de la cabecera colapsada, evitando cables desconectados o flotantes.
+- **Conmutador Global de Colapso (`ChevronsUpDown`):**
+  - Un botón en la barra de herramientas del modelo permite alternar entre colapsar todas las tablas a cabecera o desplegar todas las tablas a su vista completa con un solo clic.
+
+### 6.8. Esquema en Estrella Zero-Overlap (Auto-Alinear Estrella)
+El algoritmo de disposición radial en estrella distribuye las tablas en órbitas concéntricas proporcionales:
+- **Detección Automática del Hub (Centro de Gravedad):** Identifica la tabla con mayor conectividad relacional o volumen de transacciones para situarla en el centro exacto del lienzo.
+- **Órbitas Concéntricas Escaladas:**
+  - Órbita Interior (hasta 6 tablas): Elipse generosa de 520px de semieje horizontal por 390px de semieje vertical.
+  - Órbita Exterior (tablas restantes): Elipse secundaria de 940px × 660px con desfasamiento angular (`phaseOffset = 18°`) para evitar que las tarjetas de capas externas se alineen visualmente detrás de las internas.
+- **Pasada Iterativa de Relajación de Colisiones:**
+  - Aplica un algoritmo de fuerza elástica de repulsión entre tarjetas cercanas (`CARD_WIDTH + 40px`, `CARD_HEIGHT + 35px`), garantizando que incluso en modelos de 12 o más tablas ninguna tarjeta se monte sobre la tabla central o sobre tablas hermanas.
+
+### 6.9. Modal Pedagógico de Explicación del Modelo ("Explicar Modelo")
+Accesible mediante el botón esmeralda **`Explicar Modelo` (`BookOpen`)** en la barra de herramientas del diseñador relacional. Proporciona una guía conceptual interactiva 100% determinista (sin dependencias ni consumo de LLMs externos):
+- **La Regla de Oro (Dimensiones vs Hechos):**
+  - Explica didácticamente la diferencia entre tablas de **Dimensiones** (atributos descriptivos, responden al *quién, qué, dónde, cuándo*, filtran y agrupan datos) y tablas de **Hechos** (métricas numéricas cuantitativas, transacciones acumulables con `SUM`, `AVG`, `COUNT`).
+- **Sentido de la Propagación de Filtros (`1 ──▶ *`):**
+  - Detalla por qué los filtros fluyen de manera natural y segura desde el extremo `1` (Dimensión) hacia el extremo `*` (Hechos), y por qué el filtrado en sentido inverso causaría resultados no deterministas o desbalance de métricas.
+- **Traductor Semántico de Relaciones Activas:**
+  - Analiza cada unión física existente y redacta una oración en español accesible: *"Por cada cliente en sample_clientes_pyme, se agrupan y filtran múltiples registros en sample_ventas_pyme a través de id_cliente"*.
+- **Diagnóstico de Tablas Huérfanas y Botón de Auto-Detección:**
+  - Alerta amigablemente si existen tablas aisladas que aún no forman parte del modelo, ofreciendo un botón directo para activar la auto-detección heurística sin salir de la guía.
+
+### 6.10. Exportación de Síntesis del Modelo en Markdown (`.md`) para Auditoría Externa con LLMs
+El botón **`Exportar Síntesis (.md)`** disponible en la barra de herramientas y en el modal didáctico permite extraer un informe completo del estado del proyecto para ser analizado por un modelo de lenguaje externo (ChatGPT, Claude, Gemini, DeepSeek):
+1. **Contenido Estructurado:**
+   - Inventario de tablas con clasificación de dimensiones vs hechos, número de filas y roles inferidos de columnas.
+   - Matriz de relaciones con cardinalidades `1 ──▶ *`, claves involucradas y traducción semántica en lenguaje natural.
+   - Catálogo de visualizaciones, KPIs, agregaciones SQL (`SUM`, `AVG`, `COUNT`) y segmentadores activos en el lienzo.
+   - Diagnóstico de tablas huérfanas o desconectadas.
+2. **Prompt de Auditoría Pre-Redactado:**
+   - El documento incluye al final un bloque de instrucciones listo para copiar y pegar en el LLM externo pidiéndole que actúe como Arquitecto de Datos y Consultor Senior de BI para auditar la integridad del modelo, sugerir KPIs PyME de alto impacto y proponer mejoras en la ergonomía visual.
+3. **Flujo de Copiado + Descarga:**
+   - Descarga un archivo `<Proyecto>_sintesis_modelo.md` y copia el contenido directamente al portapapeles del sistema operativo para una consulta sin fricción.
+
 ---
 
 ## 7. Reglas de Preservación para Desarrolladores y LLMs

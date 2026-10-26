@@ -151,6 +151,22 @@ Cuando el usuario presiona el botón de eliminar relación (**🗑️**):
 3. Se remueve la relación del array `project.relations`.
 4. Si alguna tarjeta gráfica estaba vinculada a esta vista, se le asigna un estado de advertencia indicando que la fuente fue eliminada, sin crashear la aplicación.
 
+### 3.4. Contrato de Persistencia y Reconstrucción en Re-Apertura
+Para garantizar que las relaciones persistan íntegramente en el ciclo de vida del proyecto:
+1. **Nomenclatura Unívoca:** Toda vista relacional generada se nombra determinísticamente `view_{sourceTable}_{sourceCol}_{targetTable}_{targetCol}` para evitar colisiones de catálogo cuando existen múltiples claves entre el mismo par de tablas.
+2. **Re-hidratación de Vistas en DuckDB:** Al reabrir un proyecto (`.analyticraft` o carpeta empaquetada), el pipeline de carga:
+   - Purga la memoria con `resetDuckDBSession()`.
+   - Registra todos los CSVs fuente.
+   - Itera sobre `project.relations` ejecutando `createVirtualRelationView` para cada entrada, restituyendo el 100% de las vistas relacionales antes de renderizar los gráficos.
+3. **Estado de Suciedad (`isDirty`):** Toda creación, actualización o eliminación de relación marca `isDirty = true` para asegurar que el usuario no pierda su modelado al guardar.
+
+### 3.5. Contrato de Exportación de Síntesis del Modelo (`.md`)
+Permite extraer el estado completo del modelado relacional, visualizaciones y filtros en formato Markdown estructurado para auditoría con LLMs externos:
+- Serializa metadatos de tablas, roles arquitectónicos (hechos vs dimensiones), columnas y tipos.
+- Serializa relaciones con traducción semántica en lenguaje natural.
+- Genera un prompt pre-estructurado para solicitar diagnóstico de calidad, propuesta de métricas y optimización visual a un LLM externo (ChatGPT, Claude, etc.).
+- Descarga el archivo `.md` y copia el contenido al portapapeles en una sola acción.
+
 ---
 
 ## 4. Contratos de la Cinta Ribbon y Despacho de Comandos

@@ -42,15 +42,42 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
     - Al posar el ratón (`hover`) o hacer clic en cualquier tabla, las relaciones ajenas se atenúan al 8% de opacidad (`opacity: 0.08`), mientras que las líneas vinculadas se iluminan con resplandor cian brillante (`#38bdf8`), eliminando el efecto de "red de araña" ininteligible.
     - Reducción inteligente de insignias: las etiquetas centrales `1 : *` se ocultan cuando existen más de 15 relaciones a menos que la relación esté seleccionada o en foco.
     - Precisión matemática en el anclaje de curvas Bézier SVG contemplando el índice de columnas visibles tanto en modo compacto como expandido.
-  - **Corrección de Algoritmos Estrella y Cascada:**
-    - *Alineación en Estrella:* Sustituida la elipse fija de radio pequeño (que causaba que las tarjetas se apilaran encima unas de otras) por un sistema de órbitas concéntricas dinámicas que calcula radios seguros proporcionales a la cantidad de tablas.
-    - *Alineación en Cascada:* Implementado wrapping multinivel (máximo 4 tablas por fila) para evitar la hilera horizontal infinita de hechos.
-  - **Botón "Ajustar al Lienzo" (`handleFitToScreen`):**
-    - Calcula el Bounding Box de todos los nodos en tiempo real y ajusta automáticamente la escala de zoom (entre 42% y 110%) y el centrado del lienzo.
-  - **Persistencia de Posiciones de Tablas (`modelLayout`):**
-    - Las coordenadas personalizadas de cada tabla en el lienzo ahora se persisten en la estructura del proyecto `.analyticraft` y se restauran fielmente al reabrir la carpeta o el archivo.
+  - **Navegación Completa de Columnas con Scroll Vertical Interno:**
+    - La lista de columnas de las tarjetas relacionales ahora incorpora scroll vertical interno (`max-height: 250px; overflow-y: auto`) con barra de desplazamiento personalizada estilizada para tema oscuro. Los usuarios pueden inspeccionar y arrastrar el 100% de los campos sin que las tarjetas crezcan indefinidamente ni se salgan del encuadre visual.
+  - **Colapso y Expansión Individual por Tarjeta de Tabla:**
+    - Cada tarjeta cuenta con un conmutador chevron individual en la cabecera que permite colapsarla a su altura mínima (36px), ocultando la lista de columnas y pie de página para despejar el lienzo en modelos con gran número de fuentes de datos. Las líneas de relación vinculadas se reanclan matemáticamente de forma limpia al centro de la cabecera cuando la tabla está colapsada.
+  - **Control Global "Expandir / Colapsar Todo" en Modelador y Panel de Campos:**
+    - Añadido botón conmutador global (`ChevronsUpDown`) en la barra de herramientas del modelador relacional y en la cabecera del panel lateral de Campos (`FieldsPanel.tsx`) para minimizar o desplegar la totalidad de las tablas en un solo clic.
+  - **Optimización Anti-Colisión en Esquema de Estrella (Zero-Overlap Star Schema):**
+    - Rediseño del algoritmo de distribución en estrella con órbitas concéntricas escaladas (radio interior 520px × 390px, radio exterior 940px × 660px), desfasamiento angular entre capas y un pase post-procesado de relajación elástica de colisiones. Garantiza separación nítida sin solapamiento entre la tabla central y las dimensiones satélite, incluso en modelos de 12 tablas.
+  - **Modal Pedagógico de Explicación del Modelo ("Explicar Modelo" para Principiantes y Migración desde Power BI):**
+    - Nuevo asistente conceptual interactivo 100% determinista (sin dependencias ni consumo de LLMs externos) accesible desde el botón esmeralda `Explicar Modelo` en la barra de herramientas.
+    - Desglosa didácticamente la Regla de Oro: diferencia entre Dimensiones (contexto cualitativo, quién/dónde/cuándo) y Tablas de Hechos (métricas cuantitativas, transacciones).
+    - Explica el sentido de propagación de filtros (`1 ──▶ *`) y aclara por qué los filtros fluyen desde las dimensiones hacia los hechos.
+    - Alerta contextual y diagnóstico de tablas huérfanas con acceso directo al motor heurístico de auto-detección.
+  - **Corrección de Ícono de Base de Datos en Vista de Datos (`DATOS`):**
+    - Resuelto el truncamiento del ícono `<Database>` que se comprimía a 0px de ancho debido a `flex-shrink` por nombres largos de tablas (ej. `sample_almacenes_costos_pyme`). Se aplicó `flex-shrink: 0` y `min-width: 0` con elipsis de texto, garantizando que el 100% de las tablas muestren su ícono cilíndrico de base de datos independientemente de la longitud de su nombre (aclarando que no es una diferenciación del modelo entidad-relación, sino un ajuste de ergonomía tipográfica).
+  - **Persistencia Robusta de Relaciones en el Documento de Proyecto (`.analyticraft`):**
+    - *Reconstrucción Automática de Vistas Virtuales al Abrir:* Al reabrir un proyecto empaquetado o archivo `.analyticraft`, DuckDB purga su sesión en memoria (`resetDuckDBSession()`) y carga los CSVs. Tanto en `handleOpenProjectDirectory` como en `loadProjectFromFile`, ahora se itera sobre `project.relations` y se reconstruye automáticamente cada vista relacional (`createVirtualRelationView()`) en la memoria de DuckDB antes de renderizar los gráficos.
+    - *Nomenclatura Unívoca y Anti-Colisión:* En `handleAddRelationDirectly` y `handleExecuteJoin`, el nombre de las vistas ahora se genera determinísticamente contemplando tablas y columnas (`const cleanViewName = view_${sourceTable}_${sourceCol}_${targetTable}_${targetCol}.replace(/[^a-zA-Z0-9_]/g, "_");`), impidiendo que DuckDB lance errores de colisión cuando se detectan múltiples relaciones entre las mismas tablas.
+    - *Marcado Reactivo de Estado (`isDirty`):* Las acciones de conexión (individual o en masa mediante "Conectar Todas"), actualización y eliminación de relaciones en el modelador ahora marcan `isDirty = true`, encendiendo el punto indicador en la barra de título para garantizar que el archivo guardado contenga la totalidad de las relaciones.
+  - **Exportación de Síntesis del Modelo en Markdown (`.md`) para Auditoría Externa con LLMs:**
+    - Nuevo módulo de exportación `src/lib/modelSynthesis.ts` accesible mediante:
+      - Botón directo **`Exportar Síntesis (.md)`** en la barra de herramientas del modelador relacional (`ModelView.tsx`).
+      - Botón **`Exportar Síntesis para LLM (.md)`** en el pie del modal de explicación didáctica (`ModelExplanationModal.tsx`).
+    - *Contenido Estructurado del Documento:*
+      - **Resumen Cuantitativo:** Total de tablas, conteo de dimensiones, hechos, relaciones, gráficos y tablas huérfanas.
+      - **Catálogo de Tablas y Esquemas:** Registros, columnas, tipos de datos y roles arquitectónicos sugeridos (PK/FK, métricas cuantificables, dimensiones temporales y categóricas).
+      - **Matriz de Relaciones:** Sentido `1 ──▶ *`, claves involucradas, tipo de JOIN y traducción semántica en lenguaje natural.
+      - **Lienzo de Informe:** Lista de gráficos, ejes X/Y, agregaciones SQL (`SUM`, `AVG`, `COUNT`) y segmentadores activos.
+      - **Prompt de Auditoría Pre-Redactado:** Instrucciones para que el LLM externo evalúe la integridad del modelo, proponga de 3 a 5 KPIs PyME de alto impacto y sugiera mejoras de ergonomía visual.
+    - *Acción Dual:* Al pulsar el botón, descarga el archivo `<Proyecto>_sintesis_modelo.md` y copia simultáneamente el contenido completo al portapapeles con notificación toast para pegar con `Ctrl+V` directamente en ChatGPT, Claude o Gemini.
 - **Documentación Centralizada en `docs/`:**
-  - Actualizadas las páginas de la wiki en `docs/` (Página 1, Página 6, Página 8 y Página 11) y el `README.md` documentando los contratos de persistencia de proyectos empaquetados, el arranque limpio y las nuevas capacidades de limpieza y organización del modelador relacional.
+  - Actualizadas las páginas de la wiki en `docs/` ([Página 1](file:///c:/Users/Admin/Github/Analytics/Analyticraft/docs/P%C3%A1gina%201%20Home%20(Visi%C3%B3n%20y%20Filosof%C3%ADa)%20%C2%B7%20seargentpepperAnalyticraft%20Wiki.md), [Página 6](file:///c:/Users/Admin/Github/Analytics/Analyticraft/docs/P%C3%A1gina%206%20Arquitectura%20de%20UI%20y%20Contratos%20de%20Backend%20(Gu%C3%ADa%20para%20Desarrolladores%20y%20LLMs).md), [Página 8](file:///c:/Users/Admin/Github/Analytics/Analyticraft/docs/P%C3%A1gina%208%20Cinta%20de%20Opciones%20Contextual%20(Ribbon),%20Despachador%20de%20Comandos%20y%20Portapapeles.md), [Página 10](file:///c:/Users/Admin/Github/Analytics/Analyticraft/docs/P%C3%A1gina%2010%20Paneles%20Laterales%20de%20Visualizaciones%20y%20Campos%20(Drag%20&%20Drop%20y%20Constructor%20SQL%20Reactivo).md) y [Página 11](file:///c:/Users/Admin/Github/Analytics/Analyticraft/docs/P%C3%A1gina%2011%20Vista%20de%20Modelo%20Relacional%20(Grafo%20de%20Tablas,%20Drag%20&%20Drop%20y%20Vistas%20Virtuales).md)) y el `README.md` documentando los contratos de persistencia de proyectos empaquetados, el arranque limpio, la navegación con scroll y colapso de tarjetas, la guía didáctica de modelado relacional y la exportación de síntesis para LLMs.
+- **Validación y Verificación Técnica:**
+  - Compilación TypeScript (`npx tsc --noEmit`): **0 errores**.
+  - Empaquetado Vite (`npm run build`): generado exitosamente en **662ms** (bundle `dist/assets/index-BhI9iv2m.js`).
+  - Auditoría visual automatizada en el navegador verificó el renderizado del icono cilíndrico en la Vista de Datos, los botones en la barra de herramientas del Modelo y el modal de explicación con descarga y copiado al portapapeles.
 
 ---
 

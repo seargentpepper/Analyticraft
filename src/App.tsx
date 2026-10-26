@@ -579,8 +579,26 @@ export function App() {
         if (res.project.activeView) setActiveView(res.project.activeView);
         if (res.project.charts) setCharts(res.project.charts);
         if (res.project.filters) setGlobalFilters(res.project.filters);
-        if (res.project.relations) setRelations(res.project.relations);
         if (res.project.modelLayout) setModelLayout(res.project.modelLayout);
+        if (res.project.relations && res.project.relations.length > 0) {
+          setRelations(res.project.relations);
+          for (const rel of res.project.relations) {
+            try {
+              await createVirtualRelationView(
+                rel.name,
+                rel.sourceTable,
+                rel.sourceColumn,
+                rel.targetTable,
+                rel.targetColumn,
+                rel.joinType || "LEFT"
+              );
+            } catch (vErr) {
+              console.warn(`Error al reconstruir vista '${rel.name}' en DuckDB:`, vErr);
+            }
+          }
+        } else {
+          setRelations([]);
+        }
         if (res.project.charts && res.project.charts.length > 0) {
           setSelectedChartId(res.project.charts[0].id);
         }
@@ -629,8 +647,26 @@ export function App() {
       if (res.project.activeView) setActiveView(res.project.activeView);
       if (res.project.charts) setCharts(res.project.charts);
       if (res.project.filters) setGlobalFilters(res.project.filters);
-      if (res.project.relations) setRelations(res.project.relations);
       if (res.project.modelLayout) setModelLayout(res.project.modelLayout);
+      if (res.project.relations && res.project.relations.length > 0) {
+        setRelations(res.project.relations);
+        for (const rel of res.project.relations) {
+          try {
+            await createVirtualRelationView(
+              rel.name,
+              rel.sourceTable,
+              rel.sourceColumn,
+              rel.targetTable,
+              rel.targetColumn,
+              rel.joinType || "LEFT"
+            );
+          } catch (vErr) {
+            console.warn(`Error al reconstruir vista '${rel.name}' en DuckDB:`, vErr);
+          }
+        }
+      } else {
+        setRelations([]);
+      }
       if (res.project.charts && res.project.charts.length > 0) {
         setSelectedChartId(res.project.charts[0].id);
       }
@@ -730,11 +766,11 @@ export function App() {
       alert("Por favor selecciona las tablas y columnas para el enlace.");
       return;
     }
-    const viewName = `view_${joinSourceTable}_${joinTargetTable}`;
+    const cleanViewName = `view_${joinSourceTable}_${joinSourceCol}_${joinTargetTable}_${joinTargetCol}`.replace(/[^a-zA-Z0-9_]/g, "_");
 
     try {
       await createVirtualRelationView(
-        viewName,
+        cleanViewName,
         joinSourceTable,
         joinSourceCol,
         joinTargetTable,
@@ -744,7 +780,7 @@ export function App() {
 
       const relation: TableRelation = {
         id: crypto.randomUUID(),
-        name: viewName,
+        name: cleanViewName,
         sourceTable: joinSourceTable,
         sourceColumn: joinSourceCol,
         targetTable: joinTargetTable,
@@ -754,8 +790,9 @@ export function App() {
       };
 
       setRelations((prev) => [...prev, relation]);
+      setIsDirty(true);
       setShowRelationModal(false);
-      showNotification(`Vista relacional '${viewName}' creada en DuckDB`);
+      showNotification(`Vista relacional '${cleanViewName}' creada en DuckDB`);
     } catch (err: any) {
       alert("Error al crear relación virtual: " + err.message);
     }
@@ -784,10 +821,10 @@ export function App() {
       return;
     }
 
-    const viewName = `view_${sourceTable}_${targetTable}`;
+    const cleanViewName = `view_${sourceTable}_${sourceCol}_${targetTable}_${targetCol}`.replace(/[^a-zA-Z0-9_]/g, "_");
     try {
       await createVirtualRelationView(
-        viewName,
+        cleanViewName,
         sourceTable,
         sourceCol,
         targetTable,
@@ -797,7 +834,7 @@ export function App() {
 
       const relation: TableRelation = {
         id: crypto.randomUUID(),
-        name: viewName,
+        name: cleanViewName,
         sourceTable,
         sourceColumn: sourceCol,
         targetTable,
@@ -807,6 +844,7 @@ export function App() {
       };
 
       setRelations((prev) => [...prev, relation]);
+      setIsDirty(true);
       showNotification(`Relación creada: ${sourceTable}.${sourceCol} ──(1:*)──▶ ${targetTable}.${targetCol}`);
     } catch (err: any) {
       alert("Error al crear relación virtual: " + err.message);
@@ -825,6 +863,7 @@ export function App() {
     try {
       await dropVirtualRelationView(relation.name);
       setRelations((prev) => prev.filter((r) => r.id !== relation.id));
+      setIsDirty(true);
       showNotification(`Vista '${relation.name}' eliminada de DuckDB`);
     } catch (err: any) {
       alert("Error al eliminar relación: " + err.message);
@@ -845,7 +884,7 @@ export function App() {
     try {
       await dropVirtualRelationView(existing.name);
 
-      const newViewName = `view_${newSourceTable}_${newTargetTable}`;
+      const newViewName = `view_${newSourceTable}_${newSourceCol}_${newTargetTable}_${newTargetCol}`.replace(/[^a-zA-Z0-9_]/g, "_");
       await createVirtualRelationView(
         newViewName,
         newSourceTable,
@@ -866,10 +905,9 @@ export function App() {
         description: `Unión ${newJoinType} JOIN de ${newSourceTable}.${newSourceCol} con ${newTargetTable}.${newTargetCol}`,
       };
 
-      setRelations((prev) =>
-        prev.map((r) => (r.id === relationId ? updated : r))
-      );
-      showNotification(`Relación actualizada: ${newViewName} (${newJoinType} JOIN)`);
+      setRelations((prev) => prev.map((r) => (r.id === relationId ? updated : r)));
+      setIsDirty(true);
+      showNotification(`Relación actualizada a ${newJoinType} JOIN`);
     } catch (err: any) {
       alert("Error al actualizar relación: " + err.message);
     }
@@ -2341,11 +2379,13 @@ export function App() {
                   textAlign: "left",
                 }}
               >
-                <span style={{ display: "flex", alignItems: "center", gap: "6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  <Database size={13} color="#4ec9b0" />
-                  <span>{t.name}</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, overflow: "hidden" }}>
+                  <Database size={13} color="#4ec9b0" style={{ flexShrink: 0 }} />
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.name}>
+                    {t.name}
+                  </span>
                 </span>
-                <span style={{ fontSize: "0.64rem", color: "var(--text-dim)", flexShrink: 0 }}>
+                <span style={{ fontSize: "0.64rem", color: "var(--text-dim)", flexShrink: 0, marginLeft: "6px" }}>
                   {t.columns.length} col
                 </span>
               </button>
@@ -2509,6 +2549,9 @@ export function App() {
         setModelLayout(newLayout);
         setIsDirty(true);
       }}
+      projectName={projectName}
+      charts={charts}
+      globalFilters={globalFilters}
     />
   )}
         </div>

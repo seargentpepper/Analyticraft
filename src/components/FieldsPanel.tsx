@@ -11,6 +11,7 @@ import {
   Trash2,
   X,
   Plus,
+  ChevronsUpDown,
 } from "lucide-react";
 import { TableInfo } from "../lib/duckdb";
 import { DraggedFieldPayload, TableRelation, ChartConfig } from "../types/dashboard";
@@ -52,6 +53,20 @@ export const FieldsPanel: React.FC<FieldsPanelProps> = ({
 
   const isTableExpanded = (name: string) => expandedTables[name] !== false;
 
+  const allCollapsed = tables.length > 0 && tables.every((t) => expandedTables[t.name] === false);
+
+  const toggleAll = () => {
+    if (allCollapsed) {
+      setExpandedTables({});
+    } else {
+      const next: Record<string, boolean> = {};
+      tables.forEach((t) => {
+        next[t.name] = false;
+      });
+      setExpandedTables(next);
+    }
+  };
+
   const getFieldIcon = (type: string) => {
     switch (type) {
       case "number":
@@ -90,13 +105,23 @@ export const FieldsPanel: React.FC<FieldsPanelProps> = ({
           <span>Campos</span>
           <span className="pbi-panel-badge">{tables.length} {tables.length === 1 ? "tabla" : "tablas"}</span>
         </div>
-        <button
-          className="pbi-panel-toggle"
-          onClick={onToggleOpen}
-          title="Colapsar panel de Campos"
-        >
-          <ChevronRight size={14} />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <button
+            className="pbi-panel-toggle"
+            onClick={toggleAll}
+            title={allCollapsed ? "Expandir todas las tablas" : "Colapsar todas las tablas"}
+            style={{ width: "22px", height: "22px" }}
+          >
+            <ChevronsUpDown size={12} />
+          </button>
+          <button
+            className="pbi-panel-toggle"
+            onClick={onToggleOpen}
+            title="Colapsar panel de Campos"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Quick Search */}

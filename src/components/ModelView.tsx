@@ -21,10 +21,16 @@ import {
   Minimize2,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
+  ChevronsUpDown,
   Eye,
+  BookOpen,
+  FileDown,
 } from "lucide-react";
 import { TableInfo } from "../lib/duckdb";
-import { TableRelation } from "../types/dashboard";
+import { TableRelation, ChartConfig, GlobalFilter } from "../types/dashboard";
+import { ModelExplanationModal } from "./ModelExplanationModal";
+import { downloadAndCopyModelSynthesis } from "../lib/modelSynthesis";
 
 interface NodePosition {
   x: number;
@@ -54,6 +60,9 @@ interface ModelViewProps {
   showNotification: (msg: string) => void;
   savedPositions?: Record<string, NodePosition>;
   onSavePositions?: (positions: Record<string, NodePosition>) => void;
+  projectName?: string;
+  charts?: ChartConfig[];
+  globalFilters?: GlobalFilter[];
 }
 
 export interface DetectedCandidate {
@@ -79,9 +88,31 @@ export const ModelView: React.FC<ModelViewProps> = ({
   showNotification,
   savedPositions,
   onSavePositions,
+  projectName,
+  charts,
+  globalFilters,
 }) => {
   const [positions, setPositions] = useState<Record<string, NodePosition>>(savedPositions || {});
   const [zoom, setZoom] = useState<number>(1);
+
+  const handleExportSynthesis = async () => {
+    try {
+      const res = await downloadAndCopyModelSynthesis(
+        projectName || "Analyticraft_Project",
+        tables,
+        relations,
+        charts || [],
+        globalFilters || []
+      );
+      if (res.copied) {
+        showNotification("Síntesis del modelo descargada en .md y copiada al portapapeles para consultar a un LLM");
+      } else {
+        showNotification("Síntesis del modelo descargada en archivo .md");
+      }
+    } catch (err: any) {
+      showNotification("Error al generar síntesis: " + err.message);
+    }
+  };
   const [activeDraggingNode, setActiveDraggingNode] = useState<{
     tableName: string;
     startX: number;
@@ -103,10 +134,12 @@ export const ModelView: React.FC<ModelViewProps> = ({
 
   const [selectedRelationId, setSelectedRelationId] = useState<string | null>(null);
 
-  // New features: Compact mode, Expand overrides, Table focus & desaturation
-  const [isCompactMode, setIsCompactMode] = useState<boolean>(() => tables.length >= 6);
+  // Table view modes: Compact mode, Individual table collapse, and Table focus
+  const [isCompactMode, setIsCompactMode] = useState<boolean>(false);
   const [expandedTableNames, setExpandedTableNames] = useState<Set<string>>(new Set());
+  const [collapsedTableNames, setCollapsedTableNames] = useState<Set<string>>(new Set());
   const [focusedTable, setFocusedTable] = useState<string | null>(null);
+  const [showExplanationModal, setShowExplanationModal] = useState<boolean>(false);
 
   // Fase 8: Newbie-Friendly State
   const [suggestedCandidates, setSuggestedCandidates] = useState<DetectedCandidate[]>([]);
@@ -142,6 +175,28 @@ export const ModelView: React.FC<ModelViewProps> = ({
       }
       return next;
     });
+  };
+
+  // Toggle individual table collapse to header
+  const toggleTableCollapsed = (tableName: string) => {
+    setCollapsedTableNames((prev) => {
+      const next = new Set(prev);
+      if (next.has(tableName)) {
+        next.delete(tableName);
+      } else {
+        next.add(tableName);
+      }
+      return next;
+    });
+  };
+
+  // Toggle collapse state for all tables at once
+  const handleToggleAllCollapsed = () => {
+    if (collapsedTableNames.size === tables.length) {
+      setCollapsedTableNames(new Set());
+    } else {
+      setCollapsedTableNames(new Set(tables.map((t) => t.name)));
+    }
   };
 
   // Heuristic Fact vs Dimension classification
@@ -188,9 +243,10 @@ export const ModelView: React.FC<ModelViewProps> = ({
         const p = posMap[name];
         if (!p) return;
         const tbl = tables.find((t) => t.name === name);
+        const isCollapsed = collapsedTableNames.has(name);
         const isExp = expandedTableNames.has(name) || !isCompactMode;
         const colCount = tbl?.columns.length || 6;
-        const h = isExp ? Math.min(340, 70 + colCount * 24) : 130;
+        const h = isCollapsed ? 38 : (isExp ? Math.min(320, 70 + colCount * 24) : 130);
         minX = Math.min(minX, p.x);
         maxX = Math.max(maxX, p.x + CARD_WIDTH);
         minY = Math.min(minY, p.y);
@@ -217,7 +273,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
         });
       }
     },
-    [positions, tables, isCompactMode, expandedTableNames]
+    [positions, tables, isCompactMode, expandedTableNames, collapsedTableNames]
   );
 
   // 1. Limpiar y Organizar Vista: Cuadrícula multinivel balanceada anti-solapamiento
@@ -226,6 +282,9 @@ export const ModelView: React.FC<ModelViewProps> = ({
 
     // Helper to calculate approximate height of a table node
     const getTableHeight = (tbl: TableInfo) => {
+      if (collapsedTableNames.has(tbl.name)) {
+        return CARD_HEADER_HEIGHT;
+      }
       const isExp = expandedTableNames.has(tbl.name) || !isCompactMode;
       if (!isExp) {
         const relColCount = tbl.columns.filter((col) =>
@@ -237,7 +296,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
         ).length;
         return CARD_HEADER_HEIGHT + Math.max(1, relColCount) * FIELD_ROW_HEIGHT + 35;
       }
-      const visibleCols = Math.min(tbl.columns.length, 9);
+      const visibleCols = Math.min(tbl.columns.length, 8);
       return CARD_HEADER_HEIGHT + visibleCols * FIELD_ROW_HEIGHT + 30;
     };
 
@@ -306,7 +365,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
     );
   }, [tables, relations, isFactTable, isCompactMode, expandedTableNames, onSavePositions, handleFitToScreen, showNotification]);
 
-  // 2. Auto-arrange in Star Schema layout (Radial con órbitas concéntricas)
+  // 2. Auto-arrange in Star Schema layout (Radial con órbitas concéntricas amplias y anti-colisión)
   const handleStarLayout = useCallback(() => {
     if (tables.length === 0) return;
 
@@ -320,10 +379,10 @@ export const ModelView: React.FC<ModelViewProps> = ({
     const newPositions: Record<string, NodePosition> = {};
 
     if (otherTables.length <= 6) {
-      const centerX = 520;
-      const centerY = 360;
-      const radiusX = 420;
-      const radiusY = 280;
+      const centerX = 560;
+      const centerY = 420;
+      const radiusX = 490;
+      const radiusY = 360;
 
       newPositions[hubTable.name] = { x: centerX, y: centerY };
 
@@ -335,17 +394,17 @@ export const ModelView: React.FC<ModelViewProps> = ({
         };
       });
     } else {
-      // 2 Órbitas Concéntricas para evitar cualquier choque
-      const centerX = 680;
-      const centerY = 460;
+      // 2 Órbitas Concéntricas amplias para modelos complejos con separación anti-solapamiento
+      const centerX = 820;
+      const centerY = 580;
       newPositions[hubTable.name] = { x: centerX, y: centerY };
 
       const innerCount = Math.min(5, Math.ceil(otherTables.length / 2));
       const innerTables = otherTables.slice(0, innerCount);
       const outerTables = otherTables.slice(innerCount);
 
-      const innerRadiusX = 390;
-      const innerRadiusY = 270;
+      const innerRadiusX = 520;
+      const innerRadiusY = 390;
 
       innerTables.forEach((tbl, idx) => {
         const angle = (2 * Math.PI * idx) / innerTables.length - Math.PI / 2;
@@ -355,11 +414,11 @@ export const ModelView: React.FC<ModelViewProps> = ({
         };
       });
 
-      const outerRadiusX = 720;
-      const outerRadiusY = 500;
+      const outerRadiusX = 940;
+      const outerRadiusY = 660;
 
       outerTables.forEach((tbl, idx) => {
-        const angle = (2 * Math.PI * idx) / outerTables.length - Math.PI / 4;
+        const angle = (2 * Math.PI * idx) / outerTables.length - Math.PI / 2 + Math.PI / outerTables.length;
         newPositions[tbl.name] = {
           x: Math.max(40, Math.round(centerX + outerRadiusX * Math.cos(angle))),
           y: Math.max(40, Math.round(centerY + outerRadiusY * Math.sin(angle))),
@@ -367,10 +426,25 @@ export const ModelView: React.FC<ModelViewProps> = ({
       });
     }
 
+    // Pase de relajación anti-colisión
+    const names = Object.keys(newPositions);
+    for (let i = 0; i < names.length; i++) {
+      for (let j = i + 1; j < names.length; j++) {
+        const posA = newPositions[names[i]];
+        const posB = newPositions[names[j]];
+        const dx = posB.x - posA.x;
+        const dy = posB.y - posA.y;
+        if (Math.abs(dx) < CARD_WIDTH + 20 && Math.abs(dy) < 140) {
+          if (dx >= 0) posB.x += CARD_WIDTH + 30 - dx;
+          else posB.x -= CARD_WIDTH + 30 + dx;
+        }
+      }
+    }
+
     setPositions(newPositions);
     if (onSavePositions) onSavePositions(newPositions);
     setTimeout(() => handleFitToScreen(newPositions), 60);
-    showNotification(`Esquema en estrella balanceado: '${hubTable.name}' en el centro`);
+    showNotification(`Esquema en estrella balanceado: '${hubTable.name}' en el centro sin solapamientos`);
   }, [tables, relations, onSavePositions, handleFitToScreen, showNotification]);
 
   // 3. Auto-Alineación en Cascada multinivel (Dimensiones arriba, Hechos abajo)
@@ -667,11 +741,19 @@ export const ModelView: React.FC<ModelViewProps> = ({
       const sPos = positions[rel.sourceTable] || { x: 100, y: 100 };
       const tPos = positions[rel.targetTable] || { x: 450, y: 100 };
 
+      const sIsCollapsed = collapsedTableNames.has(rel.sourceTable);
+      const tIsCollapsed = collapsedTableNames.has(rel.targetTable);
+
       const sColIdx = getVisibleColIdx(rel.sourceTable, rel.sourceColumn);
       const tColIdx = getVisibleColIdx(rel.targetTable, rel.targetColumn);
 
-      const sColY = sPos.y + CARD_HEADER_HEIGHT + sColIdx * FIELD_ROW_HEIGHT + FIELD_ROW_HEIGHT / 2;
-      const tColY = tPos.y + CARD_HEADER_HEIGHT + tColIdx * FIELD_ROW_HEIGHT + FIELD_ROW_HEIGHT / 2;
+      const sColY = sIsCollapsed
+        ? sPos.y + CARD_HEADER_HEIGHT / 2
+        : sPos.y + CARD_HEADER_HEIGHT + Math.min(sColIdx, 7) * FIELD_ROW_HEIGHT + FIELD_ROW_HEIGHT / 2;
+
+      const tColY = tIsCollapsed
+        ? tPos.y + CARD_HEADER_HEIGHT / 2
+        : tPos.y + CARD_HEADER_HEIGHT + Math.min(tColIdx, 7) * FIELD_ROW_HEIGHT + FIELD_ROW_HEIGHT / 2;
 
       const isSourceLeft = sPos.x < tPos.x;
       const x1 = isSourceLeft ? sPos.x + CARD_WIDTH : sPos.x;
@@ -700,7 +782,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
         midY,
       };
     });
-  }, [relations, positions, tables, isCompactMode, expandedTableNames]);
+  }, [relations, positions, tables, isCompactMode, expandedTableNames, collapsedTableNames]);
 
   return (
     <div className="model-view-container">
@@ -714,10 +796,49 @@ export const ModelView: React.FC<ModelViewProps> = ({
               {tables.length} {tables.length === 1 ? "tabla" : "tablas"} · {relations.length}{" "}
               {relations.length === 1 ? "relación" : "relaciones"}
             </span>
+            {relations.length === 0 && (
+              <span
+                style={{
+                  fontSize: "0.64rem",
+                  color: "#f59e0b",
+                  background: "rgba(245, 158, 11, 0.12)",
+                  border: "1px solid rgba(245, 158, 11, 0.35)",
+                  padding: "2px 7px",
+                  borderRadius: "10px",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+                title="Aún no hay relaciones activas. Usa Auto-Detectar para conectarlas automáticamente."
+              >
+                ⚠️ Sin enlaces activos
+              </span>
+            )}
           </div>
         </div>
 
         <div className="model-toolbar-actions">
+          {/* Explain Model Button for Newbies */}
+          <button
+            className="model-action-btn explain-btn"
+            onClick={() => setShowExplanationModal(true)}
+            title="Aprende cómo interactúan tus tablas: Explicación didáctica de dimensiones, hechos y relaciones (Sin tecnicismos)"
+          >
+            <BookOpen size={13} />
+            <span>Explicar Modelo</span>
+          </button>
+
+          {/* Export Model Synthesis (.md) for External LLM */}
+          <button
+            className="model-action-btn secondary"
+            onClick={handleExportSynthesis}
+            title="Descargar síntesis estructurada del modelo en Markdown (.md) y copiar al portapapeles para consultar a un LLM externo (ChatGPT, Claude, etc.)"
+          >
+            <FileDown size={13} color="#4ec9b0" />
+            <span>Exportar Síntesis (.md)</span>
+          </button>
+
           {/* Zoom & Fit controls */}
           <div className="model-zoom-controls">
             <button
@@ -752,6 +873,20 @@ export const ModelView: React.FC<ModelViewProps> = ({
           >
             <LayoutGrid size={13} />
             <span>Organizar Vista</span>
+          </button>
+
+          {/* Toggle All Tables Collapsed */}
+          <button
+            className="model-tool-btn-layout"
+            onClick={handleToggleAllCollapsed}
+            title={
+              collapsedTableNames.size === tables.length
+                ? "Expandir todas las tablas para ver sus columnas"
+                : "Colapsar todas las tablas a solo cabeceras"
+            }
+          >
+            <ChevronsUpDown size={12} />
+            <span>{collapsedTableNames.size === tables.length ? "Expandir Todo" : "Colapsar Todo"}</span>
           </button>
 
           {/* Toggle Compact Mode */}
@@ -1014,6 +1149,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
             const pos = positions[tbl.name] || { x: 50, y: 50 };
             const isFact = isFactTable(tbl.name);
             const isTableExpanded = expandedTableNames.has(tbl.name) || !isCompactMode;
+            const isCollapsed = collapsedTableNames.has(tbl.name);
 
             // Columns to display (in compact mode, show only fields in relations)
             const columnsToDisplay = isTableExpanded
@@ -1032,7 +1168,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
             return (
               <div
                 key={tbl.name}
-                className={`model-table-node ${isFact ? "fact-node" : "dim-node"} ${isFocused ? "focused" : ""}`}
+                className={`model-table-node ${isFact ? "fact-node" : "dim-node"} ${isFocused ? "focused" : ""} ${isCollapsed ? "collapsed" : ""}`}
                 style={{
                   transform: `translate(${pos.x}px, ${pos.y}px)`,
                   width: `${CARD_WIDTH}px`,
@@ -1056,6 +1192,16 @@ export const ModelView: React.FC<ModelViewProps> = ({
                   title="Arrastra para mover la tabla en el lienzo"
                 >
                   <div className="model-node-title-group">
+                    <button
+                      className="model-header-collapse-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTableCollapsed(tbl.name);
+                      }}
+                      title={isCollapsed ? "Expandir tabla" : "Colapsar tabla a cabecera"}
+                    >
+                      {isCollapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
+                    </button>
                     <Database
                       size={13}
                       color={isFact ? "#007acc" : "#cca700"}
@@ -1070,7 +1216,12 @@ export const ModelView: React.FC<ModelViewProps> = ({
                     <span className={`node-classification-tag ${isFact ? "fact" : "dim"}`}>
                       {isFact ? "Hechos" : "Dimensión"}
                     </span>
-                    {isCompactMode && (
+                    {isCollapsed && (
+                      <span style={{ fontSize: "0.6rem", color: "#888888", fontWeight: 700 }}>
+                        {tbl.rowCount.toLocaleString()} r
+                      </span>
+                    )}
+                    {isCompactMode && !isCollapsed && (
                       <button
                         className="model-node-collapse-toggle"
                         onClick={(e) => {
@@ -1085,9 +1236,11 @@ export const ModelView: React.FC<ModelViewProps> = ({
                   </div>
                 </div>
 
-                {/* Node Columns List */}
-                <div className="model-node-columns-list">
-                  {columnsToDisplay.map((col) => {
+                {/* Node Columns List & Footer */}
+                {!isCollapsed && (
+                  <>
+                    <div className="model-node-columns-list">
+                      {columnsToDisplay.map((col) => {
                     const isKeyInRelation = relations.some(
                       (r) =>
                         (r.sourceTable === tbl.name && r.sourceColumn === col.name) ||
@@ -1220,6 +1373,8 @@ export const ModelView: React.FC<ModelViewProps> = ({
                 <div className="model-node-footer">
                   <span>{tbl.rowCount.toLocaleString()} registros</span>
                 </div>
+                  </>
+                )}
               </div>
             );
           })}
@@ -1476,6 +1631,16 @@ export const ModelView: React.FC<ModelViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* 7. Modal de Explicación Didáctica del Modelo (Newbies / No-LLM) */}
+      <ModelExplanationModal
+        isOpen={showExplanationModal}
+        onClose={() => setShowExplanationModal(false)}
+        tables={tables}
+        relations={relations}
+        onAutoDetectRelations={handleAutoDetectRelations}
+        onExportSynthesis={handleExportSynthesis}
+      />
     </div>
   );
 };

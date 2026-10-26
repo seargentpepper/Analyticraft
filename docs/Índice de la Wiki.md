@@ -64,7 +64,10 @@ Bienvenido a la documentación oficial y base de conocimiento de **Analyticraft*
     - Inversión de ejes `X ⇄ Y`, visual nativo `Segmentador (Slicer)` y múltiples filtros locales con introspección `SELECT DISTINCT`.
 
 11. **[Página 11: Vista de Modelo Relacional (Grafo de Tablas, Drag & Drop y Vistas Virtuales)](./Página%2011%20Vista%20de%20Modelo%20Relacional%20(Grafo%20de%20Tablas,%20Drag%20&%20Drop%20y%20Vistas%20Virtuales).md)**
-    - Diseñador relacional con lienzo infinito de grafo, zoom interactivo y auto-alineaciones (Estrella y Cascada jerárquica).
+    - Diseñador relacional con lienzo infinito de grafo, zoom interactivo y auto-alineaciones (Estrella zero-overlap con órbitas dinámicas y Cascada jerárquica).
+    - Tarjetas de tabla con scroll vertical interno (`max-height: 250px`) y conmutador individual de colapso a cabecera (36px) con reanclaje automático de conectores SVG.
+    - Conmutador global "Expandir / Colapsar Todo" en la barra de herramientas del modelo y en el panel de Campos.
+    - Modal Pedagógico "Explicar Modelo" para Newbies y analistas migrando desde Power BI: Regla de Oro (Dimensiones vs Hechos), dirección de filtros `1 ──▶ *`, traductor semántico y diagnóstico de tablas huérfanas.
     - Diferenciación cromática heurística entre Tablas de Hechos (`#007acc`) y Tablas de Dimensiones (`#cca700`).
     - Creación de relaciones arrastrando una columna directamente hacia otra tabla con resaltado de compatibilidad.
     - Conectores visuales SVG con curvas cúbicas de Bézier, símbolos de cardinalidad `1` y `*`, flecha direccional y tooltips en lenguaje natural.
