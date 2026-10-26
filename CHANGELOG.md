@@ -1,12 +1,36 @@
-# 📝 Changelog - Analyticraft
+# Changelog - Analyticraft
 
 Todas las modificaciones notables, adiciones funcionales y mejoras de diseño de este proyecto serán registradas en este archivo.
 
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/), y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2026-10-25
+
+### Suite de Pruebas Unitarias Automatizadas (Vitest)
+- **Infraestructura de Testing:** Integrado Vitest 5 como corredor nativo de pruebas automatizadas sobre Vite 8 y TypeScript, con comando `pnpm test` integrado al flujo de desarrollo y ejecución en una sola pasada (`vitest run`).
+- **Verificación de Catálogo de Temas (`tests/themes.test.ts`):** 4 pruebas unitarias que validan la integridad de los 18 temas visuales de tarjetas, propiedades de contraste, paletas hexadecimales, modos (`gradient`/`multi`) y el fallback seguro de `getTheme()`.
+- **Verificación de Generador de Opciones ECharts (`tests/chartOptions.test.ts`):** 6 pruebas unitarias que comprueban la resolución de colores sólidos (`accentColor`), gradientes vectoriales (`fillFor`), la cota estricta de 4 anillos (`MAX_RINGS`), formateo numérico localizado (`es-MX`) y la generación de estructuras válidas para gráficos de barras, líneas y donas/tortas.
+- **Verificación de Sanitización y Exportación (`tests/exporter.test.ts`):** 3 pruebas unitarias que garantizan la prevención de vulnerabilidades XSS mediante `escapeHtml()`, la serialización segura de cadenas en etiquetas `<script>` con `safeJson()`, y la integridad del documento HTML autocontenido generado por `generateStandaloneHTML()`.
+
+### Arquitectura y Proceso de Ingeniería
+
+- **Exportación de Utilidades de Sanitización:** Expuestas formalmente `escapeHtml` y `safeJson` en `src/lib/exporter.ts` para habilitar pruebas unitarias aisladas sin alterar el comportamiento en tiempo de ejecución.
+- **Archivo de Licencia Oficial:** Creado el archivo `LICENSE` con los términos de la Licencia MIT estándar para garantizar resolución de enlaces y cumplimiento de código abierto.
+
+### Documentación y Estándares de Repositorio
+- **Reestructuración de la Guía de Contribución (`CONTRIBUTING.md`):** Rediseñado íntegramente con enfoque sobrio de ingeniería (sin emojis), consolidando los 5 Principios Fundamentales (Local-First DuckDB, Inmutabilidad en Data View, Ergonomía Power BI, Aislamiento de Temas, Sanitización HTML), mapa exhaustivo de módulos del proyecto (`src/components/`, `src/lib/`, `src-tauri/`), directrices de control de alcance (Blast Radius) y checklist obligatorio previo a Pull Requests.
+- **Modernización y Limpieza de Portada (`README.md`):**
+  - Eliminación total de emojis en títulos, diagramas y viñetas para una presentación técnica profesional.
+  - Rediseño del diagrama ASCII de la interfaz de usuario con tipografía monoespaciada simétrica de 74 caracteres de ancho fijo.
+  - Incorporación de la sección "Flujo de Trabajo Típico" con el recorrido del usuario en 4 pasos (Importar, Modelar, Diseñar, Compartir).
+  - Adición de la tabla formal del Stack Tecnológico desglosando runtime (Tauri v2 / Rust), motor analítico (DuckDB-WASM), frontend (React 19 + TypeScript + Vite 8) y visualización (Apache ECharts 6).
+  - Simplificación canónica de la sección "Documentación y Enlaces" hacia los 4 documentos rectores del proyecto.
+
+---
+
 ## [0.8.2] - 2026-10-25
 
-### ⚠️ Acciones Correctivas y Mejoras de Arquitectura (Ciclo de Vida, Persistencia de Guardado y Eliminación de Muestras)
+###  Acciones Correctivas y Mejoras de Arquitectura (Ciclo de Vida, Persistencia de Guardado y Eliminación de Muestras)
 - **Modal Interactivo de Guardado (`SaveProjectModal`):**
   - Implementado diálogo modal explícito que pregunta claramente al usuario el destino y método de guardado:
     1. **Proyecto Empaquetado (Carpeta Persistente):** Permite elegir el directorio en disco mediante `showDirectoryPicker()`, creando las subcarpetas `/data/` (copias de seguridad de los CSVs cargados), `/backups/` (historial seriado de versiones) y `/temp/`.

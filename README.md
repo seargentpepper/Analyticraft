@@ -1,110 +1,128 @@
-# Analyticraft 📊
+# Analyticraft
 
-> **Herramienta de Business Intelligence de escritorio, minimalista, local-first y de código abierto para PyMEs.**
+Herramienta de Business Intelligence de escritorio, minimalista, orientada a la privacidad (local-first) y de código abierto para PyMEs.
 
 Analyticraft permite a analistas, contadores y directores procesar, modelar y visualizar datos históricos con velocidad instantánea, sin la sobrecarga ni los costos de licencias en la nube de herramientas corporativas tradicionales como Power BI o Metabase.
 
 ---
 
-## ⚡ Características Principales
+## Características Principales
 
-- **Local-First & Privacidad Absoluta:** Todo se procesa en tu ordenador con **DuckDB** en memoria. Cero servidores externos, cero telemetría y cero dependencias en la nube.
-- **Cero Fricción al Compartir:** Exporta dashboards completos e interactivos a un **único archivo `.html` autocontenido** que cualquier directivo abre con doble clic en su navegador web.
+- **Procesamiento Local y Privacidad Absoluta:** Todo se procesa en el ordenador del usuario mediante DuckDB-WASM en memoria. Cero servidores externos, cero telemetría y cero dependencias en la nube.
+- **Cero Fricción al Compartir:** Exporta dashboards completos e interactivos a un único archivo `.html` autocontenido que cualquier directivo abre con doble clic en su navegador web sin instalar dependencias.
 - **Entrada de Datos Estándar (CSV):** Diseñado deliberadamente para consumir archivos CSV individuales con detección automática de esquemas y máximo rendimiento.
-- **Hot Swap de Datos (↻):** Reemplaza o actualiza el archivo de una tabla en caliente sin perder tus gráficos, títulos ni configuraciones del lienzo.
-- **Arquitectura de Interfaz Power BI Desktop:** Distribución espacial 100% familiar (Cinta Ribbon, barra de vistas de 3 modos, paneles laterales acoplables y navegación por páginas).
-- **Vista de Datos (Solo Lectura) & Filosofía CSV:** Exploración ágil de registros crudos sin mutación de celdas, garantizando reproducibilidad y derivando los cambios al Hot Swap atómico del CSV.
-- **Modelador Relacional Visual (Esquema de Estrella):** Vinculación gráfica de tablas y dimensiones mediante líneas conectoras (1 a *), flechas de propagación de filtros y herramientas amigables para principiantes.
-- **Persistencia Profesional y Empaquetado Estructurado:** Guardado de proyectos en carpetas persistentes del sistema de archivos con selector explícito (`showDirectoryPicker()`), memoria de ruta activa en la TitleBar (`[Carpeta]`), respaldos seriados continuos en `/backups/` (`_backup_NNN`), subcarpeta `/data/` para fuentes CSV, guardado en caliente in-place (`Ctrl+S`) e instantáneas portables `.analyticraft`.
-- **Arranque Limpio y Libre de Distracciones:** Inicio estrictamente en blanco y libre de datos de muestra forzados o marcas ficticias; interfaz orientada directamente a importar archivos CSV reales del negocio desde el primer segundo.
-- **Estética Workbench Photoshop/GIMP:** Interfaz en grises oscuros industriales (`#1e1e1e` - `#2d2d2d`) con tipografía blanca semibold/bold de alto contraste que respeta tu vista y resalta tus datos.
-- **17 Temas para Gráficos:** Catálogo de temas que se aplica al unísono a las tarjetas sin alterar la UI del Studio (Básicos, Multicolor, estilo iWork/Numbers y Anillos de Actividad Fitness).
+- **Hot Swap de Datos (↻):** Reemplaza o actualiza el archivo de una tabla en caliente sin perder gráficos, títulos ni configuraciones del lienzo.
+- **Arquitectura de Interfaz Power BI Desktop:** Distribución espacial familiar compuesta por Cinta Ribbon, barra lateral de 3 vistas, paneles acoplables y navegación por páginas.
+- **Vista de Datos (Solo Lectura) y Filosofía CSV:** Exploración ágil de registros crudos sin mutación de celdas, garantizando reproducibilidad y derivando los cambios al Hot Swap atómico del CSV original.
+- **Modelador Relacional Visual (Esquema de Estrella):** Vinculación gráfica de tablas y dimensiones mediante líneas conectoras (1 a *), flechas de propagación de filtros y herramientas para principiantes.
+- **Persistencia Profesional y Empaquetado Estructurado:** Guardado de proyectos en carpetas persistentes del sistema de archivos con selector explícito (`showDirectoryPicker()`), memoria de ruta activa en la TitleBar, respaldos seriados continuos en `/backups/` (`_backup_NNN`), subcarpeta `/data/` para fuentes CSV, guardado in-place (`Ctrl+S`) e instantáneas portables `.analyticraft`.
+- **Arranque Limpio y Libre de Distracciones:** Inicio estrictamente en blanco y libre de datos de muestra forzados; interfaz orientada directamente a importar archivos CSV reales del negocio desde el primer segundo.
+- **Estética Workbench Industrial:** Interfaz en grises neutros oscuros (`#1e1e1e` a `#2d2d2d`) con tipografía blanca semibold/bold de alto contraste que respeta la vista y resalta los datos.
+- **17 Temas para Gráficos:** Catálogo de temas que se aplica al unísono a las tarjetas sin alterar la interfaz del Studio (Básicos, Multicolor, estilo iWork/Numbers y Anillos de Actividad Fitness).
 
 ---
 
-## 🖥️ Arquitectura de Interfaz: Inspiración Power BI + Filosofía Local-First
+## Flujo de Trabajo Típico
 
-Analyticraft rediseña su interfaz adoptando los estándares de **Power BI Desktop**, permitiendo a cualquier analista o usuario de negocios operar la herramienta desde el minuto cero sin curva de aprendizaje:
+1. **Importar Datos:** Cargar uno o más archivos CSV locales desde la pestaña Inicio o el panel Campos. DuckDB detecta los tipos de columna automáticamente en milisegundos.
+2. **Modelar Relaciones:** Cambiar a la Vista de Modelo para enlazar tablas de dimensiones con tablas de hechos mediante arrastre visual de columnas o mediante el botón de auto-detección.
+3. **Diseñar el Informe:** En la Vista de Informe, arrastrar campos hacia las tarjetas visuales (barras, líneas, áreas, donas, anillos o KPIs) y aplicar filtros reactivos.
+4. **Compartir Dashboard:** Exportar el proyecto a un archivo `.html` autocontenido con un clic, listo para enviar por correo o mensajería sin requerir servidores ni licencias.
+
+---
+
+## Stack Tecnológico
+
+| Componente | Tecnología | Rol en la Arquitectura |
+|---|---|---|
+| Runtime de Escritorio | Tauri v2 (Rust 1.75+) | Ventana nativa liviana, consumo mínimo de RAM y acceso seguro al sistema de archivos |
+| Motor Analítico | DuckDB-WASM | Procesamiento columnar vectorizado en memoria y ejecución de consultas SQL analíticas |
+| Frontend Core | React 19 + TypeScript + Vite 8 | Interfaz reactiva desacoplada, tipado estricto y compilación rápida |
+| Motor de Visualización | Apache ECharts 6 + Lucide Icons | Renderizado interactivo de alto rendimiento en Canvas y sistema iconográfico |
+| Parser de Archivos | PapaParse | Análisis y procesamiento preliminar de fuentes tabulares delimitadas |
+| Sistema de Diseño | CSS Workbench Industrial | Paleta neutra oscura (`#1e1e1e` a `#2d2d2d`) con tokens de diseño dedicados |
+
+---
+
+## Arquitectura de Interfaz: Estándar Power BI Desktop
+
+Analyticraft estructura su espacio de trabajo replicando la anatomía de Power BI Desktop, permitiendo una adopción inmediata sin curva de aprendizaje:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│  BARRA DE TÍTULO: [📁 Abrir] [💾 Guardar] [📁+ Como] [↶] [↷]  [Carpeta] Proyecto.analyticraft*  [ ? ] │
+│  BARRA DE TITULO: [Abrir] [Guardar] [Guardar Como] [Deshacer] [Rehacer]│
+│                   [Carpeta] Proyecto.analyticraft*                     │
 ├────────────────────────────────────────────────────────────────────────┤
 │  CINTA RIBBON: [Archivo] [Inicio] [Insertar] [Modelado] [Ver] [Formato]│
 ├──────┬───────────────────────────────────────────┬────────┬────────────┤
-│BARRA │ LIENZO DE TRABAJO (CANVAS)                │PANELES │CAMPOS      │
+│RIEL  │ LIENZO DE TRABAJO (CANVAS)                │PANELES │CAMPOS      │
 │VISTAS│                                           │FORMATO │(FIELDS)    │
 │      │ [Banner de KPIs - Total Ventas | Margen]  │        │            │
-│ [📊] │                                           │Visuals │📁 Sales    │
-│Report│ ┌───────────────────┐ ┌──────────────────┐│[📊][🥧] │  # Venta   │
-│      │ │ Ventas por Región │ │ Cierres x Equipo ││[📈][⭕] │  📅 Fecha  │
-│ [📋] │ └───────────────────┘ └──────────────────┘│        │  Abc Tienda│
-│Data  │ ┌───────────────────┐ ┌──────────────────┐│Build   │            │
-│      │ │ P&L Cascada       │ │ Mix de Producto  ││Format  │📁 Stores   │
-│ [🕸️] │ └───────────────────┘ └──────────────────┘│        │  # StoreKey│
-│Model │                                           │        │  Abc Ciudad│
+│[Rep] │                                           │Visuals │[Tbl] Sales │
+│Report│ ┌───────────────────┐ ┌──────────────────┐│[Bar]   │  # Venta   │
+│      │ │ Ventas por Region │ │ Cierres x Equipo ││[Line]  │  Fecha     │
+│[Dat] │ └───────────────────┘ └──────────────────┘│[Pie]   │  Abc Tienda│
+│Data  │ ┌───────────────────┐ ┌──────────────────┐│[Table] │            │
+│      │ │ P&L Cascada       │ │ Mix de Producto  ││Build   │[Tbl] Stores│
+│[Mod] │ └───────────────────┘ └──────────────────┘│Format  │  # StoreKey│
+│Model │ └───────────────────┘ └──────────────────┘│        │  Abc Ciudad│
 ├──────┴───────────────────────────────────────────┴────────┴────────────┤
-│ PÁGINAS Y ZOOM: [Página 1] [Página 2] [+]   |   Pág 1 de 2  |  [-] 100% [+]│
+│PAGINAS Y ZOOM: [Pagina 1] [Pagina 2] [+]   |  Pag 1 de 2  | [-]100% [+]│
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1. Barra de Vistas Lateral (3 Modos Esenciales)
-1. **Vista de Informe (Report View):** Lienzo visual para estructurar gráficos, métricas y tarjetas KPI interactivas.
-2. **Vista de Datos (Data View - Solo Lectura):** Visor en cuadrícula de los registros crudos cargados en DuckDB.
-   - **¿Por qué es estrictamente de Solo Lectura y no permite editar celdas?**
-     En analítica profesional, permitir la alteración arbitraria de celdas en el visor de BI **destruye la fuente única de verdad (Single Source of Truth)**, genera discrepancias irreconciliables con los sistemas de origen (ERP, CRM, SQL) y corrompe las relaciones lógicas del modelo.
-     En Analyticraft, la integridad de los datos es sagrada: **para corregir o alterar registros, el flujo recomendado es modificar el archivo CSV original y realizar un Hot Swap (↻)**. DuckDB reinserta los datos en memoria en menos de 50 milisegundos sin perder configuraciones, títulos ni filtros en el lienzo.
-3. **Vista de Modelo (Model View):** Diagrama relacional de grafos para enlazar tablas de dimensiones (`Stores`, `Calendar`) con tablas de hechos (`Sales`) mediante drag & drop visual, con flechas de flujo y cardinalidad `1` a `*`. Incluye soporte *Newbie-Friendly* con auto-detección y auto-alineación semántica en cascada.
+### 1. Barra de Vistas Lateral (3 Modos Principales)
+1. **Vista de Informe (Report View):** Lienzo analítico interactivo para organizar gráficos, tarjetas métricas y segmentadores.
+2. **Vista de Datos (Data View - Solo Lectura):** Cuadrícula tabular de alta densidad para inspeccionar los registros crudos cargados en DuckDB.
+   - **Por qué es estrictamente de solo lectura:** Permitir la edición directa de celdas en el visor destruye la Fuente Única de Verdad (*Single Source of Truth*), provocando discrepancias con los sistemas origen (ERP, CRM) y corrompiendo las relaciones lógicas. Para corregir registros, la regla es modificar el CSV original y realizar un Hot Swap (`↻`).
+3. **Vista de Modelo (Model View):** Diagrama relacional para enlazar dimensiones y hechos mediante drag & drop, con cálculo de cardinalidad (`1` a `*`), auto-alineación en cascada y sugerencias heurísticas asistidas.
 
 ### 2. Paneles Laterales y Cinta Ribbon
 - **Cinta Ribbon (Superior):** Acceso contextual organizado a herramientas de portapapeles, inserción de visuales, consultas CSV, medidas SQL y temas.
-- **Panel de Visualizaciones & Formato (Derecha):** Selector visual en cuadrícula de tipos de gráfico y personalización detallada (`Build` para asignación de campos y `Format` para propiedades visuales).
-- **Panel de Campos (FIELDS):** Estructura jerárquica de tablas cargadas con tipado visible (`#`, `Abc`, `📅`).
-- **Navegación por Páginas:** Barra inferior para intercambiar solapas de reportes ejecutivos con control de zoom del lienzo.
+- **Panel de Visualizaciones (Derecha):** Selector visual de gráficos y subpestañas `Build` (drop-zones de ejes) y `Format` (ajustes de títulos, leyendas y notas).
+- **Panel de Campos (FIELDS):** Árbol jerárquico de tablas y columnas con tipado visual explícito (`#` numérico, `Abc` texto, fecha y booleano).
+- **Navegación por Páginas (Inferior):** Pestañas de reportes ejecutivos con selector dinámico y control de zoom.
 
 ---
 
-## 🚀 Puesta en Marcha Rápida
+## Puesta en Marcha
 
 ### Prerrequisitos
-- **Node.js:** v20+ o v24+
-- **Rust & Cargo:** v1.75+ (instalado vía `rustup`)
-- **Microsoft C++ Build Tools & Windows SDK** (en Windows)
+- **Node.js:** Versión LTS activa (v20.x o v22.x)
+- **Rust y Cargo:** v1.75+ (instalado vía `rustup`)
+- **Gestor de paquetes:** `pnpm` (recomendado) o `npm` v10+
+- **Compilador C++ (Windows):** Microsoft Visual Studio C++ Build Tools y Windows SDK
 
-### Comandos de Ejecución
+### Instalación y Ejecución
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/seargentpepper/Analyticraft.git
 cd Analyticraft
 
 # 2. Instalar dependencias
-npm install
+pnpm install
+# (o alternativamente: npm install)
 
 # 3. Iniciar la aplicación nativa de escritorio (Tauri)
-npm run tauri dev
+pnpm run tauri dev
+# (o alternativamente: npm run tauri dev)
 
-# 4. (Opcional) Iniciar el Studio en modo navegador web
-npm run dev
+# 4. (Opcional) Compilar y verificar tipos estrictos
+pnpm run build
 ```
 
 ---
 
-## 📚 Documentación y Enlaces
+## Documentación y Enlaces
 
-- **[Wiki del Proyecto](./docs/Índice%20de%20la%20Wiki.md):** Documentación a fondo sobre la visión, arquitectura, flujos de datos y diseño del ecosistema.
-  - [Página 1: Visión y Filosofía](./docs/Página%201%20Home%20(Visión%20y%20Filosofía)%20·%20seargentpepperAnalyticraft%20Wiki.md)
-  - [Página 2: Arquitectura y Stack Tecnológico](./docs/Página%202%20Arquitectura%20y%20Stack%20Tecnológico%20·%20seargentpepperAnalyticraft%20Wiki.md)
-  - [Página 3: Flujo de Datos y Workflows Técnicos](./docs/Página%203%20Flujo%20de%20Datos%20y%20Workflows%20Técnicos%20·%20seargentpepperAnalyticraft%20Wiki.md)
-  - [Página 4: UX y Ecosistema (Studio vs. Viewer)](./docs/Página%204%20UX%20y%20Ecosistema%20(Studio%20vs.%20Viewer)%20·%20seargentpepperAnalyticraft%20Wiki.md)
-  - [Página 5: Filosofía de Datos y Guía de Exportación a CSV](./docs/Página%205%20Filosofía%20de%20Datos%20(Por%20qué%20CSV%20y%20Guía%20de%20Exportación).md)
-  - [Página 6: Arquitectura de UI y Contratos de Backend (Guía Técnica)](./docs/Página%206%20Arquitectura%20de%20UI%20y%20Contratos%20de%20Backend%20(Guía%20para%20Desarrolladores%20y%20LLMs).md)
-  - [Página 8: Cinta de Opciones Contextual (Ribbon) y Despachador](./docs/Página%208%20Cinta%20de%20Opciones%20Contextual%20(Ribbon),%20Despachador%20de%20Comandos%20y%20Portapapeles.md)
-- **[ROADMAP.md](./ROADMAP.md):** Mapa de ruta en 18 fases acopladas (UI + Backend) hacia el 100% de la suite.
-- **[CHANGELOG.md](./CHANGELOG.md):** Historial detallado de versiones y cambios del proyecto.
-- **[CONTRIBUTING.md](./CONTRIBUTING.md):** Directrices técnicas para colaborar, crear temas y respetar los principios del proyecto.
+- **[Índice de la Wiki](./docs/Índice%20de%20la%20Wiki.md):** Base de conocimiento central con las 12 páginas de arquitectura, flujos de datos y contratos técnicos del sistema.
+- **[ROADMAP.md](./ROADMAP.md):** Hoja de ruta técnica en 18 fases acopladas hacia la suite completa.
+- **[CONTRIBUTING.md](./CONTRIBUTING.md):** Directrices de desarrollo, arquitectura de componentes y checklist para Pull Requests.
+- **[CHANGELOG.md](./CHANGELOG.md):** Registro histórico detallado de versiones y cambios notables.
+
 
 ---
 
-## 📄 Licencia
+## Licencia
 
-Este proyecto está bajo la licencia [MIT](LICENSE).
+Este proyecto se distribuye bajo la licencia [MIT](LICENSE).
