@@ -1,0 +1,4 @@
+id_almacen,nombre_almacen,ciudad,direccion_almacen,capacidad_total_m3,costo_diario_por_m3_mxn,costo_fijo_mensual_operacion_mxn,costo_anual_mantenimiento_mxn,personal_almacen,tipo_instalacion
+ALM-MTY,CEDIS Norte Monterrey,Monterrey,Parque Industrial Apodaca Nave 4,1800,14.50,85000,180000,12,Hub Regional Climatizado
+ALM-CDMX,CEDIS Centro Tlalnepantla,CDMX,Zona Industrial San Jerónimo Bodega 12,2500,18.20,125000,240000,18,Hub Central Consolidado
+ALM-GDL,CEDIS Occidente El Salto,Guadalajara,Corredor Industrial El Salto Módulo 2,1400,13.80,72000,150000,9,Almacén Distribución Ligero

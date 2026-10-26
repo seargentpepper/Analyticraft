@@ -75,6 +75,7 @@ export type RibbonAction =
   | { type: "NEW_PROJECT" }
   | { type: "OPEN_PROJECT" }
   | { type: "SAVE_PROJECT" }
+  | { type: "SAVE_PROJECT_AS" }
   | { type: "COPY_CARD"; cardId?: string }
   | { type: "PASTE_CARD" }
   | { type: "DUPLICATE_CARD"; cardId?: string }
@@ -146,7 +147,9 @@ const [clipboard, setClipboard] = useState<ChartConfig | null>(null);
 | `Ctrl + 1` | Conmutar a Vista de Informe | Fuera de campos de texto |
 | `Ctrl + 2` | Conmutar a Vista de Datos (Solo Lectura) | Fuera de campos de texto |
 | `Ctrl + 3` | Conmutar a Vista de Modelo Relacional | Fuera de campos de texto |
-| `Ctrl + S` | Guardar proyecto `.analyticraft` | Fuera de campos de texto |
+| `Ctrl + O` | Abrir Proyecto (despliega diálogo modal con selector de archivos y carpetas) | Fuera de campos de texto |
+| `Ctrl + S` | Guardar proyecto en carpeta o instantánea | Fuera de campos de texto |
+| `Ctrl + Shift + S` | Guardar Como (abre selector explícito de carpeta/instantánea) | Fuera de campos de texto |
 | `Ctrl + Z` | Deshacer última acción (Undo) | Fuera de campos de texto |
 | `Ctrl + Y` | Rehacer acción revertida (Redo) | Fuera de campos de texto |
 | `Ctrl + C` | Copiar tarjeta seleccionada al portapapeles | Tarjeta activa requerida |

@@ -1,0 +1,6 @@
+id_vendedor,nombre_vendedor,email_vendedor,zona_cobertura,nivel_carrera_actual,siguiente_nivel_carrera,sueldo_base_mensual_mxn,comision_pct,cuota_mensual_mxn,cuota_trimestral_mxn,antiguedad_meses,score_liderazgo_talento,score_competencias_tecnicas,elegibilidad_promocion_carrera,requisitos_promocion_cumplidos_pct,fecha_ingreso,fecha_ultima_evaluacion
+VEND-001,Javier Navarro,jnavarro@analyticraft.mx,Norte,Senior Enterprise Executive,Lead Regional Comercial Norte,28000,3.5,100000,300000,38,94,96,Elegible para Promoción Inmediata,95,2023-03-15,2026-03-31
+VEND-002,Mariana Castillo,mcastillo@analyticraft.mx,Centro,Senior B2B Consultant,Key Account Director Centro,25000,3.5,86667,260000,44,92,93,Elegible para Promoción Inmediata,92,2022-08-01,2026-03-31
+VEND-003,Alejandro Ruiz,aruiz@analyticraft.mx,Occidente,Mid Territory Executive,Senior Enterprise Executive,20000,3.0,70000,210000,27,84,88,Candidato en Revisión Q3,85,2024-01-10,2026-03-31
+VEND-004,Beatriz Mendoza,bmendoza@analyticraft.mx,Bajío,Senior Key Account Manager,Head of Strategic Accounts Nacional,30000,4.0,93333,280000,53,98,99,Elegible para Promoción Inmediata,98,2021-11-20,2026-03-31
+VEND-005,Samuel Peña,spena@analyticraft.mx,Corporativo Nacional,Corporate Inside Sales,Mid Territory Executive,17000,3.0,63333,190000,22,81,85,En Desarrollo de Competencias,76,2024-06-01,2026-03-31

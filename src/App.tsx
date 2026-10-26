@@ -6,7 +6,6 @@ import {
   Plus,
   Share2,
   FileSpreadsheet,
-  Sparkles,
   BarChart2,
   TrendingUp,
   PieChart,
@@ -37,6 +36,7 @@ import {
   ChevronDown,
   SlidersHorizontal,
   Eye,
+  FolderPlus,
 } from "lucide-react";
 import {
   registerCSVFile,
@@ -45,11 +45,20 @@ import {
   createVirtualRelationView,
   dropVirtualRelationView,
   executeQuery,
+  resetDuckDBSession,
+  getRegisteredCSVs,
 } from "./lib/duckdb";
 import {
-  SAMPLE_CLIENTES_PYME_CSV,
-  SAMPLE_VENTAS_PYME_CSV,
-} from "./lib/sampleData";
+  saveProjectFolder,
+  openProjectFolder,
+  openProjectSingleFile,
+  isFileSystemAccessSupported,
+  exportProjectSnapshot,
+  getSavedProjectDirectoryName,
+  setSavedProjectDirectoryName,
+} from "./lib/projectStorage";
+import { SaveProjectModal } from "./components/SaveProjectModal";
+import { OpenProjectModal } from "./components/OpenProjectModal";
 import {
   ChartConfig,
   ChartType,
@@ -83,9 +92,17 @@ export function App() {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [statusNotification, setStatusNotification] = useState<string | null>(null);
 
-  // Shell Navigation & Project Meta (Fase 3: Power BI Shell)
+  // Shell Navigation & Project Meta (Fase 3 & 8.5: Ciclo de vida limpio y empaquetado)
   const [activeView, setActiveView] = useState<AppViewMode>("report");
-  const [projectName, setProjectName] = useState<string>("Reporte_Comercial.analyticraft");
+  const [projectName, setProjectName] = useState<string>("Sin_Titulo.analyticraft");
+  const [projectNameDraft, setProjectNameDraft] = useState<string>("Sin_Titulo");
+  const [projectDirHandle, setProjectDirHandle] = useState<any | null>(null);
+  const [activeDirName, setActiveDirName] = useState<string | null>(() => getSavedProjectDirectoryName());
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+  const [isEditingProjectName, setIsEditingProjectName] = useState<boolean>(false);
+  const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+  const [showOpenModal, setShowOpenModal] = useState<boolean>(false);
+  const [modelLayout, setModelLayout] = useState<Record<string, { x: number; y: number }>>({});
   const [history, setHistory] = useState<{ charts: ChartConfig[]; filters: GlobalFilter[] }[]>([]);
   const [future, setFuture] = useState<{ charts: ChartConfig[]; filters: GlobalFilter[] }[]>([]);
 
@@ -132,12 +149,14 @@ export function App() {
 
   // Undo / Redo helpers
   const recordSnapshot = () => {
+    setIsDirty(true);
     setHistory((prev) => [...prev.slice(-25), { charts, filters: globalFilters }]);
     setFuture([]);
   };
 
   const handleUndo = () => {
     if (history.length === 0) return;
+    setIsDirty(true);
     const previous = history[history.length - 1];
     setFuture((prev) => [{ charts, filters: globalFilters }, ...prev]);
     setCharts(previous.charts);
@@ -148,6 +167,7 @@ export function App() {
 
   const handleRedo = () => {
     if (future.length === 0) return;
+    setIsDirty(true);
     const next = future[0];
     setHistory((prev) => [...prev, { charts, filters: globalFilters }]);
     setCharts(next.charts);
@@ -155,6 +175,13 @@ export function App() {
     setFuture((prev) => prev.slice(1));
     showNotification("Rehacer: cambios reaplicados");
   };
+
+  // 0. Inicio limpio en blanco (Fase 8.5)
+  useEffect(() => {
+    resetDuckDBSession().catch((err) =>
+      console.warn("Limpieza inicial DuckDB:", err)
+    );
+  }, []);
 
   // Synchronize rows for Data View with introspection (COUNT) and paginated LIMIT/OFFSET
   useEffect(() => {
@@ -223,9 +250,15 @@ export function App() {
       } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === "3") {
         e.preventDefault();
         handleSwitchView("model");
+      } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "o" || e.key === "O")) {
+        e.preventDefault();
+        setShowOpenModal(true);
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        handleSaveProject(true);
       } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "s" || e.key === "S")) {
         e.preventDefault();
-        handleSaveProject();
+        handleSaveProject(false);
       } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
         e.preventDefault();
         handleUndo();
@@ -263,7 +296,21 @@ export function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [history, future, charts, globalFilters, projectName, selectedChartId, clipboard]);
+  }, [
+    history,
+    future,
+    charts,
+    globalFilters,
+    relations,
+    projectName,
+    projectNameDraft,
+    projectDirHandle,
+    activeDirName,
+    activeTheme,
+    activeView,
+    selectedChartId,
+    clipboard,
+  ]);
 
   // 1. Initial CSV Upload Handler
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,6 +355,7 @@ export function App() {
           setSelectedChartId(newChart.id);
         }
       }
+      setIsDirty(true);
       showNotification("Tabla registrada en memoria DuckDB");
     } catch (err: any) {
       alert("Error al cargar archivo CSV: " + err.message);
@@ -317,48 +365,36 @@ export function App() {
     }
   };
 
-  // 1b. Cargar Datos de Muestra PyME (Ventas y Clientes)
-  const handleLoadSampleDatasets = async () => {
+  // 1b. Nuevo Proyecto en Blanco Total (Fase 8.5)
+  const handleNewProject = async () => {
+    if (
+      (isDirty || charts.length > 0 || tables.length > 0) &&
+      !confirm("¿Iniciar un nuevo proyecto en blanco? Los cambios no guardados se cerrarán.")
+    ) {
+      return;
+    }
+
     setIsUploading(true);
     try {
-      const clientesInfo = await registerCSVContent(
-        SAMPLE_CLIENTES_PYME_CSV,
-        "sample_clientes_pyme",
-        "sample_clientes_pyme.csv"
-      );
-      const ventasInfo = await registerCSVContent(
-        SAMPLE_VENTAS_PYME_CSV,
-        "sample_ventas_pyme",
-        "sample_ventas_pyme.csv"
-      );
-
-      setTables((prev) => {
-        const filtered = prev.filter(
-          (t) => t.name !== "sample_clientes_pyme" && t.name !== "sample_ventas_pyme"
-        );
-        return [...filtered, clientesInfo, ventasInfo];
-      });
-
-      if (charts.length === 0) {
-        const defaultChart: ChartConfig = {
-          id: crypto.randomUUID(),
-          title: "Ventas por Categoría",
-          description: "Cálculo de la suma de ventas segmentado por categoría.",
-          showLegend: false,
-          type: "bar",
-          tableName: "sample_ventas_pyme",
-          dimensionCol: "categoria",
-          metricCol: "ventas",
-          aggregation: "SUM",
-        };
-        setCharts([defaultChart]);
-        setSelectedChartId(defaultChart.id);
-      }
-
+      await resetDuckDBSession();
+      setTables([]);
+      setCharts([]);
+      setGlobalFilters([]);
+      setRelations([]);
+      setSelectedChartId(null);
+      setProjectName("Sin_Titulo.analyticraft");
+      setProjectNameDraft("Sin_Titulo");
+      setProjectDirHandle(null);
+      setActiveDirName(null);
+      setSavedProjectDirectoryName(null);
+      setModelLayout({});
+      setIsDirty(false);
+      setHistory([]);
+      setFuture([]);
       setRefreshVersion((v) => v + 1);
-      showNotification("Datos de muestra PyME (Ventas y Clientes) cargados en DuckDB");
+      showNotification("Nuevo proyecto en blanco iniciado. Catálogo de DuckDB reiniciado.");
     } catch (err: any) {
-      alert("Error al cargar datos de muestra: " + err.message);
+      alert("Error al restablecer la sesión: " + err.message);
     } finally {
       setIsUploading(false);
     }
@@ -384,6 +420,7 @@ export function App() {
       setTables((prev) =>
         prev.map((t) => (t.name === hotSwapTargetTable ? updatedTable : t))
       );
+      setIsDirty(true);
       setRefreshVersion((v) => v + 1);
       showNotification(`Hot Swap exitoso: '${hotSwapTargetTable}' actualizada`);
     } catch (err: any) {
@@ -395,61 +432,254 @@ export function App() {
     }
   };
 
-  // 3. Project Persistence: Save project as JSON
-  const handleSaveProject = () => {
-    const cleanProjectName = projectName.trim() || "Reporte_Comercial.analyticraft";
+  // 3. Project Persistence: Guardar en Carpeta con Backups Seriados (Fase 8.5)
+  const handleSaveProject = async (saveAs: boolean = false) => {
+    // Si no es "Guardar Como" y ya tenemos un handle de directorio activo, guardamos directamente
+    if (!saveAs && projectDirHandle) {
+      const cleanProjectName = (projectNameDraft || projectName || "Sin_Titulo")
+        .replace(/\.analyticraft$/i, "")
+        .trim();
+
+      const project: AnalyticraftProject = {
+        version: "1.1",
+        name: cleanProjectName,
+        activeTheme,
+        activeView,
+        charts,
+        filters: globalFilters,
+        relations,
+        modelLayout: Object.keys(modelLayout).length > 0 ? modelLayout : undefined,
+        savedAt: new Date().toISOString(),
+      };
+
+      const csvMap = getRegisteredCSVs();
+      const result = await saveProjectFolder(
+        project,
+        csvMap,
+        projectDirHandle,
+        false
+      );
+
+      if (result.success) {
+        setIsDirty(false);
+        if (result.backupCreated) {
+          showNotification(
+            `Proyecto guardado. Respaldo creado en /backups/${result.backupCreated}`
+          );
+        } else {
+          showNotification(
+            `Proyecto guardado en carpeta '${activeDirName || cleanProjectName}'`
+          );
+        }
+      }
+      return;
+    }
+
+    // Si es "Guardar Como" o aún no hay carpeta asignada, abrimos el diálogo modal para que el usuario elija
+    setShowSaveModal(true);
+  };
+
+  // Guardar en Carpeta Confirmado desde el Modal
+  const handleSaveAsFolderConfirmed = async (customName: string) => {
+    const cleanProjectName = customName.trim() || "Sin_Titulo";
     const project: AnalyticraftProject = {
-      version: "1.0",
-      name: cleanProjectName.replace(/\.analyticraft$/i, ""),
+      version: "1.1",
+      name: cleanProjectName,
       activeTheme,
       activeView,
       charts,
       filters: globalFilters,
       relations,
+      modelLayout: Object.keys(modelLayout).length > 0 ? modelLayout : undefined,
       savedAt: new Date().toISOString(),
     };
 
-    const blob = new Blob([JSON.stringify(project, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = cleanProjectName.endsWith(".analyticraft")
-      ? cleanProjectName
-      : `${cleanProjectName}.analyticraft`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showNotification(`Proyecto '${cleanProjectName}' guardado (.analyticraft)`);
+    const csvMap = getRegisteredCSVs();
+    const result = await saveProjectFolder(
+      project,
+      csvMap,
+      null, // Forzar selector de directorio
+      true
+    );
+
+    if (result.success) {
+      if (result.dirHandle) {
+        setProjectDirHandle(result.dirHandle);
+        setActiveDirName(result.dirHandle.name);
+        setSavedProjectDirectoryName(result.dirHandle.name);
+      }
+      setProjectName(`${result.projectName}.analyticraft`);
+      setProjectNameDraft(result.projectName);
+      setIsDirty(false);
+
+      if (result.method === "directory") {
+        showNotification(
+          `Proyecto y fuentes CSV empaquetados en carpeta '${result.dirHandle?.name || result.projectName}'`
+        );
+      } else {
+        showNotification(
+          `Instantánea descargada como '${result.projectName}.analyticraft'`
+        );
+      }
+    }
   };
 
-  // 4. Project Persistence: Load project from JSON
-  const handleOpenProjectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Guardar Instantánea Rápida (.analyticraft JSON) Confirmado desde el Modal
+  const handleSaveInstantSnapshotConfirmed = (customName: string) => {
+    const cleanProjectName = customName.trim() || "Sin_Titulo";
+    const project: AnalyticraftProject = {
+      version: "1.1",
+      name: cleanProjectName,
+      activeTheme,
+      activeView,
+      charts,
+      filters: globalFilters,
+      relations,
+      modelLayout: Object.keys(modelLayout).length > 0 ? modelLayout : undefined,
+      savedAt: new Date().toISOString(),
+    };
+
+    const csvMap = getRegisteredCSVs();
+    exportProjectSnapshot(project, csvMap, cleanProjectName);
+    setProjectName(`${cleanProjectName}.analyticraft`);
+    setProjectNameDraft(cleanProjectName);
+    setIsDirty(false);
+    showNotification(
+      `Instantánea rápida descargada como '${cleanProjectName}.analyticraft'`
+    );
+  };
+
+  // 4a. Abrir Carpeta de Proyecto estructurada (Fase 8.5)
+  const handleOpenProjectDirectory = async () => {
+    if (isFileSystemAccessSupported()) {
+      try {
+        const dirHandle = await (window as any).showDirectoryPicker({
+          id: "analyticraft_projects",
+          mode: "readwrite",
+          startIn: "documents",
+        });
+        setIsUploading(true);
+        const res = await openProjectFolder(dirHandle);
+        if (!res) return;
+
+        await resetDuckDBSession();
+        const loadedTables: TableInfo[] = [];
+        for (const csv of res.csvFiles) {
+          const tInfo = await registerCSVContent(csv.content, csv.tableName, csv.fileName);
+          loadedTables.push(tInfo);
+        }
+        setTables(loadedTables);
+
+        const pName = res.project.name.endsWith(".analyticraft")
+          ? res.project.name
+          : `${res.project.name}.analyticraft`;
+        setProjectName(pName);
+        setProjectNameDraft(res.project.name.replace(/\.analyticraft$/i, ""));
+        if (res.project.activeTheme) setActiveTheme(res.project.activeTheme);
+        if (res.project.activeView) setActiveView(res.project.activeView);
+        if (res.project.charts) setCharts(res.project.charts);
+        if (res.project.filters) setGlobalFilters(res.project.filters);
+        if (res.project.relations) setRelations(res.project.relations);
+        if (res.project.modelLayout) setModelLayout(res.project.modelLayout);
+        if (res.project.charts && res.project.charts.length > 0) {
+          setSelectedChartId(res.project.charts[0].id);
+        }
+
+        setProjectDirHandle(res.dirHandle);
+        setActiveDirName(res.dirHandle.name);
+        setSavedProjectDirectoryName(res.dirHandle.name);
+        setIsDirty(false);
+        setRefreshVersion((v) => v + 1);
+        showNotification(`Proyecto '${res.project.name}' cargado con ${loadedTables.length} fuentes CSV`);
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          alert("Error al abrir carpeta de proyecto: " + err.message);
+        }
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      projectInputRef.current?.click();
+    }
+  };
+
+  // 4b. Cargar proyecto desde un archivo (.analyticraft o .json)
+  const loadProjectFromFile = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const res = await openProjectSingleFile(file);
+      if (!res) return;
+
+      if (res.csvFiles.length > 0) {
+        await resetDuckDBSession();
+        const loadedTables: TableInfo[] = [];
+        for (const csv of res.csvFiles) {
+          const tInfo = await registerCSVContent(csv.content, csv.tableName, csv.fileName);
+          loadedTables.push(tInfo);
+        }
+        setTables(loadedTables);
+      }
+
+      const pName = res.project.name.endsWith(".analyticraft")
+        ? res.project.name
+        : `${res.project.name}.analyticraft`;
+      setProjectName(pName);
+      setProjectNameDraft(res.project.name.replace(/\.analyticraft$/i, ""));
+      if (res.project.activeTheme) setActiveTheme(res.project.activeTheme);
+      if (res.project.activeView) setActiveView(res.project.activeView);
+      if (res.project.charts) setCharts(res.project.charts);
+      if (res.project.filters) setGlobalFilters(res.project.filters);
+      if (res.project.relations) setRelations(res.project.relations);
+      if (res.project.modelLayout) setModelLayout(res.project.modelLayout);
+      if (res.project.charts && res.project.charts.length > 0) {
+        setSelectedChartId(res.project.charts[0].id);
+      }
+
+      setProjectDirHandle(null);
+      setActiveDirName(null);
+      setSavedProjectDirectoryName(null);
+      setIsDirty(false);
+      setRefreshVersion((v) => v + 1);
+      showNotification(`Proyecto '${res.project.name}' cargado exitosamente`);
+    } catch (err: any) {
+      alert("Error al leer archivo de proyecto: " + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // 4c. Selector Nativo de Archivos (.analyticraft)
+  const handleOpenProjectSingleFilePicker = async () => {
+    if (typeof window !== "undefined" && "showOpenFilePicker" in window) {
+      try {
+        const [fileHandle] = await (window as any).showOpenFilePicker({
+          types: [
+            {
+              description: "Proyecto Analyticraft (*.analyticraft, *.json)",
+              accept: {
+                "application/json": [".analyticraft", ".json"],
+              },
+            },
+          ],
+          multiple: false,
+        });
+        if (!fileHandle) return;
+        const file = await fileHandle.getFile();
+        await loadProjectFromFile(file);
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          projectInputRef.current?.click();
+        }
+      }
+    } else {
+      projectInputRef.current?.click();
+    }
+  };
+
+  const handleOpenProjectFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const parsed = JSON.parse(evt.target?.result as string) as AnalyticraftProject;
-        if (parsed.name) {
-          setProjectName(parsed.name.endsWith(".analyticraft") ? parsed.name : `${parsed.name}.analyticraft`);
-        }
-        if (parsed.activeTheme) setActiveTheme(parsed.activeTheme);
-        if (parsed.activeView) setActiveView(parsed.activeView);
-        if (parsed.charts) setCharts(parsed.charts);
-        if (parsed.filters) setGlobalFilters(parsed.filters);
-        if (parsed.relations) setRelations(parsed.relations);
-        if (parsed.charts && parsed.charts.length > 0) {
-          setSelectedChartId(parsed.charts[0].id);
-        }
-        setRefreshVersion((v) => v + 1);
-        showNotification(`Proyecto '${parsed.name || file.name}' cargado exitosamente`);
-      } catch (err: any) {
-        alert("Error al leer archivo de proyecto: " + err.message);
-      }
-    };
-    reader.readAsText(file);
+    await loadProjectFromFile(file);
     e.target.value = "";
   };
 
@@ -810,23 +1040,19 @@ export function App() {
   const dispatchAction = (action: RibbonAction) => {
     switch (action.type) {
       case "NEW_PROJECT":
-        if (charts.length > 0 && !confirm("¿Iniciar un nuevo proyecto? Se limpiará el lienzo actual.")) {
-          return;
-        }
-        recordSnapshot();
-        setCharts([]);
-        setGlobalFilters([]);
-        setSelectedChartId(null);
-        setProjectName("Reporte_Comercial.analyticraft");
-        showNotification("Nuevo proyecto en blanco iniciado");
+        handleNewProject();
         break;
 
       case "OPEN_PROJECT":
-        projectInputRef.current?.click();
+        setShowOpenModal(true);
         break;
 
       case "SAVE_PROJECT":
-        handleSaveProject();
+        handleSaveProject(false);
+        break;
+
+      case "SAVE_PROJECT_AS":
+        handleSaveProject(true);
         break;
 
       case "COPY_CARD":
@@ -1025,21 +1251,28 @@ export function App() {
             <span className="brand-badge" style={{ marginLeft: "6px" }}>Studio BI</span>
           </div>
 
-          {/* Quick Access Toolbar (Fase 3 & 4) */}
+          {/* Quick Access Toolbar (Fase 3, 4 & 8.5) */}
           <div className="titlebar-quick-actions" style={{ marginLeft: "14px" }}>
             <button
               className="quick-action-btn"
-              onClick={() => projectInputRef.current?.click()}
-              title="Abrir Proyecto (.analyticraft o .json)"
+              onClick={() => setShowOpenModal(true)}
+              title="Abrir Proyecto (.analyticraft o carpeta) (Ctrl+O)"
             >
               <FolderOpen size={13} strokeWidth={1.5} />
             </button>
             <button
               className="quick-action-btn"
-              onClick={handleSaveProject}
-              title="Guardar Proyecto (Ctrl+S)"
+              onClick={() => handleSaveProject(false)}
+              title="Guardar Proyecto (Ctrl+S) - Crea backup seriado"
             >
               <Save size={13} strokeWidth={1.5} />
+            </button>
+            <button
+              className="quick-action-btn"
+              onClick={() => handleSaveProject(true)}
+              title="Guardar Como en Carpeta (Ctrl+Shift+S)"
+            >
+              <FolderPlus size={13} strokeWidth={1.5} />
             </button>
             <button
               className="quick-action-btn"
@@ -1060,10 +1293,62 @@ export function App() {
           </div>
         </div>
 
-        {/* Project Name Label (Solo Lectura) */}
-        <div className="project-name-pill" title="Nombre del proyecto activo (.analyticraft)">
-          <FileText size={13} color="#4ec9b0" />
-          <span className="project-name-label">{projectName}</span>
+        {/* Project Name Pill con Directorio Persistente, Dirty State y Renombrado Inline (Fase 8.5) */}
+        <div
+          className="project-name-pill"
+          title={
+            activeDirName
+              ? `Proyecto vinculado a carpeta: ${activeDirName}. Clic para renombrar.`
+              : "Nombre del proyecto activo. Clic para renombrar."
+          }
+          onClick={() => {
+            if (!isEditingProjectName) {
+              setIsEditingProjectName(true);
+            }
+          }}
+        >
+          <FolderOpen size={13} color={activeDirName ? "#38bdf8" : "#4ec9b0"} />
+          {isEditingProjectName ? (
+            <input
+              type="text"
+              className="project-name-input"
+              value={projectNameDraft}
+              autoFocus
+              onChange={(e) => setProjectNameDraft(e.target.value)}
+              onBlur={() => {
+                setIsEditingProjectName(false);
+                const clean = projectNameDraft.trim() || "Sin_Titulo";
+                setProjectName(`${clean}.analyticraft`);
+                setIsDirty(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setIsEditingProjectName(false);
+                  const clean = projectNameDraft.trim() || "Sin_Titulo";
+                  setProjectName(`${clean}.analyticraft`);
+                  setIsDirty(true);
+                } else if (e.key === "Escape") {
+                  setIsEditingProjectName(false);
+                  setProjectNameDraft(projectName.replace(/\.analyticraft$/i, ""));
+                }
+              }}
+            />
+          ) : (
+            <span className="project-name-label">
+              {activeDirName && (
+                <span style={{ color: "#38bdf8", marginRight: "4px", fontWeight: 700 }}>
+                  [{activeDirName}]
+                </span>
+              )}
+              {projectName}
+              {isDirty && (
+                <span
+                  className="project-name-dirty-dot"
+                  title="Cambios no guardados (Ctrl+S para guardar)"
+                />
+              )}
+            </span>
+          )}
         </div>
       </header>
 
@@ -1175,7 +1460,7 @@ export function App() {
                   <button
                     className="ribbon-btn-large"
                     onClick={() => dispatchAction({ type: "NEW_PROJECT" })}
-                    title="Iniciar un nuevo proyecto en blanco (limpia el lienzo)"
+                    title="Iniciar un nuevo proyecto en blanco (limpia el lienzo y purga DuckDB)"
                   >
                     <Plus size={18} strokeWidth={1.5} color="#4ec9b0" />
                     <span>Nuevo</span>
@@ -1183,7 +1468,7 @@ export function App() {
                   <button
                     className="ribbon-btn-large"
                     onClick={() => dispatchAction({ type: "OPEN_PROJECT" })}
-                    title="Cargar archivo de proyecto (.analyticraft o .json)"
+                    title="Cargar carpeta de proyecto estructurada o archivo .analyticraft"
                   >
                     <FolderOpen size={18} strokeWidth={1.5} color="#cca700" />
                     <span>Abrir</span>
@@ -1191,10 +1476,18 @@ export function App() {
                   <button
                     className="ribbon-btn-large"
                     onClick={() => dispatchAction({ type: "SAVE_PROJECT" })}
-                    title="Guardar estado del proyecto actual (.analyticraft - Ctrl+S)"
+                    title="Guardar estado del proyecto actual con backup seriado (Ctrl+S)"
                   >
                     <Save size={18} strokeWidth={1.5} color="#007acc" />
                     <span>Guardar</span>
+                  </button>
+                  <button
+                    className="ribbon-btn-large"
+                    onClick={() => dispatchAction({ type: "SAVE_PROJECT_AS" })}
+                    title="Guardar en una nueva carpeta seleccionada por el usuario (Ctrl+Shift+S)"
+                  >
+                    <FolderPlus size={18} strokeWidth={1.5} color="#38bdf8" />
+                    <span>Guardar Como</span>
                   </button>
                 </div>
                 <div className="ribbon-group-title">Proyecto</div>
@@ -1224,22 +1517,6 @@ export function App() {
                   </div>
                 </div>
                 <div className="ribbon-group-title">Documentación</div>
-              </div>
-
-              <div className="ribbon-divider" />
-
-              <div className="ribbon-group">
-                <div className="ribbon-group-controls">
-                  <button
-                    className="ribbon-btn-large"
-                    onClick={handleLoadSampleDatasets}
-                    title="Cargar tablas de ejemplo PyME (Ventas y Clientes) para pruebas y demostración rápida"
-                  >
-                    <Sparkles size={18} strokeWidth={1.5} color="#cca700" />
-                    <span>Muestra PyME</span>
-                  </button>
-                </div>
-                <div className="ribbon-group-title">Demostración</div>
               </div>
             </>
           )}
@@ -1325,24 +1602,14 @@ export function App() {
                     <RefreshCw size={18} strokeWidth={1.5} color="#4ec9b0" />
                     <span>Hot Swap</span>
                   </button>
-                  <div className="ribbon-btn-stack">
-                    <button
-                      className="ribbon-btn-compact"
-                      onClick={() => dispatchAction({ type: "REFRESH_ALL_DATA" })}
-                      title="Reejecutar consultas SQL sobre todas las tarjetas"
-                    >
-                      <RefreshCw size={12} strokeWidth={1.5} color="#007acc" />
-                      <span>Actualizar Todo</span>
-                    </button>
-                    <button
-                      className="ribbon-btn-compact"
-                      onClick={handleLoadSampleDatasets}
-                      title="Cargar muestra PyME (Ventas y Clientes) para pruebas y demostración rápida"
-                    >
-                      <Sparkles size={12} strokeWidth={1.5} color="#cca700" />
-                      <span>Muestra PyME</span>
-                    </button>
-                  </div>
+                  <button
+                    className="ribbon-btn-large"
+                    onClick={() => dispatchAction({ type: "REFRESH_ALL_DATA" })}
+                    title="Reejecutar consultas SQL sobre todas las tarjetas"
+                  >
+                    <RefreshCw size={18} strokeWidth={1.5} color="#007acc" />
+                    <span>Actualizar</span>
+                  </button>
                 </div>
                 <div className="ribbon-group-title">Datos</div>
               </div>
@@ -1913,34 +2180,40 @@ export function App() {
 
           {charts.length === 0 ? (
             <div className="empty-state">
-              <Sparkles size={40} color="#007acc" />
+              <BarChart3 size={40} color="#007acc" />
               <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#ffffff" }}>
                 Comienza cargando un archivo CSV o arrastrando un campo
               </div>
               <p style={{ maxWidth: "440px", fontSize: "0.8rem", color: "#cccccc", fontWeight: 500 }}>
                 Arrastra una columna desde el panel de Campos a este lienzo o haz clic en cualquier tipo de gráfico en Visualizaciones.
               </p>
-              <button
-                className="btn-load-sample-empty"
-                onClick={handleLoadSampleDatasets}
+              <label
+                className="btn"
                 style={{
                   marginTop: "12px",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "6px",
-                  background: "#222222",
-                  border: "1px solid #cca700",
-                  color: "#cca700",
-                  padding: "7px 16px",
+                  background: "#0e639c",
+                  border: "1px solid #1177bb",
+                  color: "#ffffff",
+                  padding: "8px 18px",
                   borderRadius: "4px",
                   fontWeight: 700,
-                  fontSize: "0.78rem",
+                  fontSize: "0.8rem",
                   cursor: "pointer",
                 }}
               >
-                <Sparkles size={14} color="#cca700" />
-                <span>Cargar Datos de Muestra (Ventas y Clientes PyME)</span>
-              </button>
+                <input
+                  type="file"
+                  accept=".csv"
+                  multiple
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                />
+                <FileSpreadsheet size={15} color="#ffffff" />
+                <span>Importar archivo CSV</span>
+              </label>
             </div>
           ) : (
             <div className="charts-grid">
@@ -2231,6 +2504,11 @@ export function App() {
       onDeleteRelation={handleDeleteRelation}
       onOpenJoinModal={openJoinModal}
       showNotification={showNotification}
+      savedPositions={modelLayout}
+      onSavePositions={(newLayout) => {
+        setModelLayout(newLayout);
+        setIsDirty(true);
+      }}
     />
   )}
         </div>
@@ -2601,6 +2879,32 @@ export function App() {
           </div>
         </div>
       )}
+
+      {/* Modal de Guardado y Empaquetado Estructurado (Fase 8.5) */}
+      <SaveProjectModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        projectName={projectName}
+        currentDirectoryName={activeDirName}
+        onSaveAsFolder={handleSaveAsFolderConfirmed}
+        onSaveInstantSnapshot={handleSaveInstantSnapshotConfirmed}
+        onOverwriteCurrentFolder={
+          projectDirHandle
+            ? async () => {
+                await handleSaveProject(false);
+              }
+            : undefined
+        }
+      />
+ 
+       {/* Modal de Apertura de Proyecto (Fase 8.5) */}
+       <OpenProjectModal
+         isOpen={showOpenModal}
+         onClose={() => setShowOpenModal(false)}
+         onOpenSingleFile={handleOpenProjectSingleFilePicker}
+         onOpenFolder={handleOpenProjectDirectory}
+         savedDirectoryName={activeDirName || getSavedProjectDirectoryName()}
+       />
 
       {/* Floating Status Notification Toast */}
       {statusNotification && (

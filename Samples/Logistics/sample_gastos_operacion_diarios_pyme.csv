@@ -1,0 +1,56 @@
+id_gasto,fecha,ejercicio_trimestre,mes,id_almacen,categoria_gasto,subcategoria,descripcion_concepto,monto_egreso_mxn,departamento,tipo_gasto,proveedor_beneficiario,metodo_pago
+GTO-25Q3-001,2025-07-02,2025-Q3,2025-07,CORP,Tecnología y Cloud,SaaS & Infraestructura,Servidores AWS y base de datos DuckDB Cloud,14500,TI,Fijo,Amazon Web Services,Tarjeta Corporativa
+GTO-25Q3-002,2025-07-05,2025-Q3,2025-07,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-25Q3-003,2025-07-05,2025-Q3,2025-07,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-25Q3-004,2025-07-05,2025-Q3,2025-07,ALM-GDL,Almacenamiento,Arrendamiento,Renta mensual Módulo 2 Corredor El Salto,72000,Operaciones,Fijo,Desarrollos Logísticos de Occidente,Transferencia SPEI
+GTO-25Q3-005,2025-07-10,2025-Q3,2025-07,CORP,Marketing,Publicidad Digital,Campañas Google Ads y LinkedIn B2B Leads,18500,Comercial,Variable,Google Ads México,Tarjeta Corporativa
+GTO-25Q3-006,2025-07-15,2025-Q3,2025-07,CORP,Nómina y Sueldos,Sueldo Base Ventas,Pago 1a Quincena Sueldos Base Equipo Vendedores,60000,Comercial,Fijo,Equipo Comercial (5 ejecutivos),Transferencia SPEI
+GTO-25Q3-007,2025-07-15,2025-Q3,2025-07,CORP,Nómina y Sueldos,Sueldo Base Almacenes,Pago 1a Quincena Operarios Almacén y Logística,95000,Operaciones,Fijo,Personal Logístico (39 operarios),Transferencia SPEI
+GTO-25Q3-008,2025-07-20,2025-Q3,2025-07,CORP,Servicios Generales,Suministros Oficina,Material de empaque y consumibles corporativos,7800,Administración,Variable,Office Depot Empresas,Transferencia SPEI
+GTO-25Q3-009,2025-07-31,2025-Q3,2025-07,CORP,Nómina y Sueldos,Sueldo Base Ventas,Pago 2a Quincena Sueldos Base Equipo Vendedores,60000,Comercial,Fijo,Equipo Comercial (5 ejecutivos),Transferencia SPEI
+GTO-25Q3-010,2025-07-31,2025-Q3,2025-07,CORP,Nómina y Sueldos,Sueldo Base Almacenes,Pago 2a Quincena Operarios Almacén y Logística,95000,Operaciones,Fijo,Personal Logístico (39 operarios),Transferencia SPEI
+GTO-25Q3-011,2025-08-02,2025-Q3,2025-08,CORP,Tecnología y Cloud,SaaS & Infraestructura,Licencias ERP Microsoft 365 y Analítica,15200,TI,Fijo,Microsoft México,Tarjeta Corporativa
+GTO-25Q3-012,2025-08-05,2025-Q3,2025-08,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-25Q3-013,2025-08-05,2025-Q3,2025-08,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-25Q3-014,2025-08-05,2025-Q3,2025-08,ALM-GDL,Almacenamiento,Arrendamiento,Renta mensual Módulo 2 Corredor El Salto,72000,Operaciones,Fijo,Desarrollos Logísticos de Occidente,Transferencia SPEI
+GTO-25Q3-015,2025-08-15,2025-Q3,2025-08,CORP,Nómina y Sueldos,Sueldo Base Ventas,Pago 1a Quincena Sueldos Base Equipo Vendedores,60000,Comercial,Fijo,Equipo Comercial (5 ejecutivos),Transferencia SPEI
+GTO-25Q3-016,2025-08-15,2025-Q3,2025-08,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de julio,13800,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-25Q3-017,2025-08-25,2025-Q3,2025-08,CORP,Servicios Generales,Energía y Telecomunicaciones,CFE y enlaces dedicados fibra óptica almacenes,16400,Operaciones,Fijo,CFE y Telmex Empresas,Domiciliación Bancaria
+GTO-25Q3-018,2025-08-31,2025-Q3,2025-08,CORP,Nómina y Sueldos,Sueldo Base Ventas,Pago 2a Quincena Sueldos Base Equipo Vendedores,60000,Comercial,Fijo,Equipo Comercial (5 ejecutivos),Transferencia SPEI
+GTO-25Q3-019,2025-09-02,2025-Q3,2025-09,CORP,Tecnología y Cloud,SaaS & Infraestructura,Servidores AWS y almacenamiento seguro,14800,TI,Fijo,Amazon Web Services,Tarjeta Corporativa
+GTO-25Q3-020,2025-09-05,2025-Q3,2025-09,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-25Q3-021,2025-09-05,2025-Q3,2025-09,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-25Q3-022,2025-09-05,2025-Q3,2025-09,ALM-GDL,Almacenamiento,Arrendamiento,Renta mensual Módulo 2 Corredor El Salto,72000,Operaciones,Fijo,Desarrollos Logísticos de Occidente,Transferencia SPEI
+GTO-25Q3-023,2025-09-15,2025-Q3,2025-09,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de agosto,14200,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-25Q3-024,2025-09-30,2025-Q3,2025-09,CORP,Nómina y Sueldos,Bonos de Rendimiento,Pago trimestral bonos desempeño Q3 fuerza ventas,80000,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-25Q4-001,2025-10-02,2025-Q4,2025-10,CORP,Tecnología y Cloud,SaaS & Infraestructura,Ampliación ancho de banda y licencias BI,16200,TI,Fijo,Amazon Web Services,Tarjeta Corporativa
+GTO-25Q4-002,2025-10-05,2025-Q4,2025-10,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-25Q4-003,2025-10-05,2025-Q4,2025-10,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-25Q4-004,2025-10-05,2025-Q4,2025-10,ALM-GDL,Almacenamiento,Arrendamiento,Renta mensual Módulo 2 Corredor El Salto,72000,Operaciones,Fijo,Desarrollos Logísticos de Occidente,Transferencia SPEI
+GTO-25Q4-005,2025-10-15,2025-Q4,2025-10,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de septiembre,14015,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-25Q4-006,2025-11-05,2025-Q4,2025-11,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-25Q4-007,2025-11-05,2025-Q4,2025-11,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-25Q4-008,2025-11-05,2025-Q4,2025-11,ALM-GDL,Almacenamiento,Arrendamiento,Renta mensual Módulo 2 Corredor El Salto,72000,Operaciones,Fijo,Desarrollos Logísticos de Occidente,Transferencia SPEI
+GTO-25Q4-009,2025-11-15,2025-Q4,2025-11,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de octubre,15800,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-25Q4-010,2025-12-05,2025-Q4,2025-12,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-25Q4-011,2025-12-15,2025-Q4,2025-12,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de noviembre,16945,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-25Q4-012,2025-12-20,2025-Q4,2025-12,CORP,Nómina y Sueldos,Aguinaldos y Prestaciones,Aguinaldo de ley equipo comercial y operativo,145000,Recursos Humanos,Fijo,Personal Corporativo y Almacén,Transferencia SPEI
+GTO-25Q4-013,2025-12-31,2025-Q4,2025-12,CORP,Nómina y Sueldos,Bonos de Rendimiento,Pago trimestral bonos desempeño Q4 fuerza ventas,115000,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q1-001,2026-01-05,2026-Q1,2026-01,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-26Q1-002,2026-01-05,2026-Q1,2026-01,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-26Q1-003,2026-01-05,2026-Q1,2026-01,ALM-GDL,Almacenamiento,Arrendamiento,Renta mensual Módulo 2 Corredor El Salto,72000,Operaciones,Fijo,Desarrollos Logísticos de Occidente,Transferencia SPEI
+GTO-26Q1-004,2026-01-15,2026-Q1,2026-01,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de diciembre,16200,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q1-005,2026-02-05,2026-Q1,2026-02,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-26Q1-006,2026-02-15,2026-Q1,2026-02,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de enero,17800,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q1-007,2026-03-05,2026-Q1,2026-03,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-26Q1-008,2026-03-15,2026-Q1,2026-03,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de febrero,18290,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q1-009,2026-03-31,2026-Q1,2026-03,CORP,Nómina y Sueldos,Bonos de Rendimiento,Pago trimestral bonos desempeño Q1 fuerza ventas,130000,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q2-001,2026-04-05,2026-Q2,2026-04,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-26Q2-002,2026-04-05,2026-Q2,2026-04,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-26Q2-003,2026-04-05,2026-Q2,2026-04,ALM-GDL,Almacenamiento,Arrendamiento,Renta mensual Módulo 2 Corredor El Salto,72000,Operaciones,Fijo,Desarrollos Logísticos de Occidente,Transferencia SPEI
+GTO-26Q2-004,2026-04-15,2026-Q2,2026-04,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de marzo,18170,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q2-005,2026-05-05,2026-Q2,2026-05,ALM-CDMX,Almacenamiento,Arrendamiento,Renta mensual Bodega 12 Tlalnepantla,125000,Operaciones,Fijo,Parques Industriales Valle de México,Transferencia SPEI
+GTO-26Q2-006,2026-05-15,2026-Q2,2026-05,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de abril,18850,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q2-007,2026-06-05,2026-Q2,2026-06,ALM-MTY,Almacenamiento,Arrendamiento,Renta mensual Nave 4 Parque Industrial Apodaca,85000,Operaciones,Fijo,Inmobiliaria Industrial Monterrey,Transferencia SPEI
+GTO-26Q2-008,2026-06-15,2026-Q2,2026-06,CORP,Nómina y Sueldos,Comisiones de Venta,Pago mensual comisiones por ventas de mayo,19440,Comercial,Variable,Equipo Comercial,Transferencia SPEI
+GTO-26Q2-009,2026-06-30,2026-Q2,2026-06,CORP,Nómina y Sueldos,Bonos de Rendimiento,Pago trimestral bonos desempeño Q2 fuerza ventas,144000,Comercial,Variable,Equipo Comercial,Transferencia SPEI

@@ -1,0 +1,21 @@
+id_performance,id_vendedor,nombre_vendedor,ejercicio_trimestre,ventas_alcanzadas_mxn,cuota_trimestral_mxn,cumplimiento_cuota_pct,prospecciones_iniciadas,prospecciones_ganadas,tasa_efectividad_cierre_pct,score_trato_cliente,score_relacion_clientes,sueldo_base_acumulado_mxn,comision_generada_mxn,bono_calibrado_mxn,compensacion_total_vendedor_mxn,porcentaje_variable_sobre_total_pct,calibracion_kpi_tier,dictamen_promocion_carrera
+PERF-2025Q3-01,VEND-001,Javier Navarro,2025-Q3,318000,280000,113.6,22,10,45.5,9.6,93,84000,11130,30000,125130,32.9,Nivel A+ (Top Performer),Candidato a Liderazgo Regional
+PERF-2025Q3-02,VEND-002,Mariana Castillo,2025-Q3,265000,250000,106.0,19,8,42.1,9.4,91,75000,9275,18000,102275,26.7,Nivel A (Cumplido),En Ruta a Dirección de Cuentas
+PERF-2025Q3-03,VEND-003,Alejandro Ruiz,2025-Q3,185000,200000,92.5,16,5,31.3,8.7,82,60000,5550,0,65550,8.5,Nivel B (En Desarrollo),Consolidando Cartera Territorial
+PERF-2025Q3-04,VEND-004,Beatriz Mendoza,2025-Q3,295000,270000,109.3,18,9,50.0,9.8,96,90000,11800,32000,133800,32.7,Nivel A+ (Top Performer),Postulada a Head Nacional
+PERF-2025Q3-05,VEND-005,Samuel Peña,2025-Q3,142000,170000,83.5,14,4,28.6,8.4,79,51000,4260,0,55260,7.7,Nivel C (En Plan Mejora),Capacitación en Cierre B2B
+PERF-2025Q4-01,VEND-001,Javier Navarro,2025-Q4,345000,290000,119.0,25,12,48.0,9.7,95,84000,12075,35000,131075,35.9,Nivel A+ (Top Performer),Aprobación Preliminar Promoción
+PERF-2025Q4-02,VEND-002,Mariana Castillo,2025-Q4,282000,255000,110.6,21,9,42.9,9.5,92,75000,9870,22000,106870,29.8,Nivel A+ (Top Performer),Reconocimiento Mérito Comercial
+PERF-2025Q4-03,VEND-003,Alejandro Ruiz,2025-Q4,212000,205000,103.4,18,7,38.9,8.9,85,60000,6360,12000,78360,23.4,Nivel A (Cumplido),Meta Superada en Cierre Anual
+PERF-2025Q4-04,VEND-004,Beatriz Mendoza,2025-Q4,320000,275000,116.4,20,11,55.0,9.9,98,90000,12800,36000,138800,35.2,Nivel A+ (Top Performer),Máximo Desempeño Nacional
+PERF-2025Q4-05,VEND-005,Samuel Peña,2025-Q4,188000,180000,104.4,17,6,35.3,8.8,84,51000,5640,10000,66640,23.5,Nivel A (Cumplido),Evolución Positiva de Cuota
+PERF-2026Q1-01,VEND-001,Javier Navarro,2026-Q1,358000,300000,119.3,27,13,48.1,9.8,96,84000,12530,38000,134530,37.6,Nivel A+ (Top Performer),Promoción Aprobada a Lead Norte
+PERF-2026Q1-02,VEND-002,Mariana Castillo,2026-Q1,294000,260000,113.1,23,10,43.5,9.6,94,75000,10290,25000,110290,32.0,Nivel A+ (Top Performer),Promoción Aprobada a Key Account Dir
+PERF-2026Q1-03,VEND-003,Alejandro Ruiz,2026-Q1,228000,210000,108.6,20,8,40.0,9.1,88,60000,6840,15000,81840,26.7,Nivel A (Cumplido),Candidato a Promoción Senior Q3
+PERF-2026Q1-04,VEND-004,Beatriz Mendoza,2026-Q1,348000,280000,124.3,22,12,54.5,9.9,99,90000,13920,40000,143920,37.5,Nivel A+ (Top Performer),Promovida a Head Strategic Accounts
+PERF-2026Q1-05,VEND-005,Samuel Peña,2026-Q1,205000,190000,107.9,18,7,38.9,9.0,86,51000,6150,12000,69150,26.2,Nivel A (Cumplido),En Preparación para Territory Exec
+PERF-2026Q2-01,VEND-001,Javier Navarro,2026-Q2,382000,300000,127.3,28,14,50.0,9.9,97,84000,13370,42000,139370,39.7,Nivel A+ (Top Performer),Asume Liderazgo de Equipo Norte
+PERF-2026Q2-02,VEND-002,Mariana Castillo,2026-Q2,308000,260000,118.5,24,11,45.8,9.7,95,75000,10780,28000,113780,34.1,Nivel A+ (Top Performer),Expande Cobertura Centro-Sur
+PERF-2026Q2-03,VEND-003,Alejandro Ruiz,2026-Q2,242000,210000,115.2,21,9,42.9,9.2,89,60000,7260,18000,85260,29.6,Nivel A (Cumplido),Revisión Final para Nivel Senior
+PERF-2026Q2-04,VEND-004,Beatriz Mendoza,2026-Q2,365000,280000,130.4,24,14,58.3,10.0,99,90000,14600,45000,149600,39.8,Nivel A+ (Top Performer),Liderazgo Consolidado Nacional
+PERF-2026Q2-05,VEND-005,Samuel Peña,2026-Q2,215000,190000,113.2,19,8,42.1,9.1,88,51000,6450,14000,71450,28.6,Nivel A (Cumplido),Transición a Ventas de Campo

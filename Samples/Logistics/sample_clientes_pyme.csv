@@ -1,0 +1,9 @@
+id_cliente,nombre_cliente,sector,ciudad,contacto_nombre,contacto_email,tamano_empresa,id_vendedor_asignado,interes_actual,categoria_expansion,oportunidad_expansion_mxn,score_propension_compra,fecha_proxima_compra_estimada,plazo_pago_dias
+TechCorp,TechCorp México,Tecnología,Monterrey,Ing. Carlos Garza,carlos.garza@techcorp.mx,Mediana,VEND-001,Equipamiento TI Devs,Servicios Cloud & DevOps,135000,94,2026-05-18,30
+PyME Solutions,Soluciones PyME SA,Consultoría,CDMX,Lic. Andrea Morales,amorales@pymesolutions.com.mx,Pequeña,VEND-002,Ergonomía y Trabajo Remoto,Mobiliario Ejecutivo y BI,54000,78,2026-06-05,15
+Design Studio,Studio Creativo Digital,Diseño,Guadalajara,Diego Domínguez,ddominguez@studiocreativo.io,Pequeña,VEND-003,Monitores y Periféricos 4K,Workstations y Render Cloud,68000,86,2026-05-22,30
+Logística Norte,Transportes del Norte,Logística,Monterrey,Lic. Roberto Cantú,rcantu@transportesnorte.mx,Mediana,VEND-001,Infraestructura Cloud,Sensores IoT Almacén y Movilidad,110000,91,2026-06-12,45
+Grupo Industrial,Grupo Industrial Bajío,Manufactura,Querétaro,Ing. Fernando Trejo,ftrejo@industrialbajio.com,Grande,VEND-004,Auditorías y Soporte Anual,Ciberseguridad y Redes Planta,240000,89,2026-05-30,60
+Retail Moderna,Retail Moderna de Occidente,Retail,Guadalajara,Mtra. Sofía Valenzuela,svalenzuela@retailmoderna.mx,Mediana,VEND-003,Puntos de Venta y Laptops,E-Commerce Omnicanal y Nube,85000,74,2026-06-18,30
+Fintech Vanguardia,Fintech Vanguardia SAPI,Fintech,CDMX,Rodrigo Soto,rsoto@fintechvanguardia.com,Mediana,VEND-002,Cómputo Seguro y Portátil,Soporte Anual Premium y BI,165000,95,2026-05-25,30
+BioSalud Labs,BioSalud Laboratorios,Salud,Puebla,Dra. Elena Fuentes,efuentes@biosaludlabs.com.mx,Pequeña,VEND-004,Mobiliario de Precisión,Monitores Clínicos y Soporte,58000,81,2026-06-28,30

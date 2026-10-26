@@ -272,3 +272,20 @@ En preparación para la Fase 4, se definieron las siguientes directrices y contr
 4. **Consistencia Iconográfica y Optimización de Ergonomía Vertical:**
    - Toda la interfaz adopta una estética uniforme de línea (`strokeWidth={1.5}` de Lucide), evitando inconsistencias entre iconos sólidos y de contorno.
    - Para maximizar los píxeles útiles en el eje Y (crucial para visualizar múltiples filas y gráficos sin scroll vertical asfixiante), se proyecta la migración de la barra horizontal de filtros hacia un panel lateral derecho colapsable (estilo *Filters Pane* de Power BI Desktop).
+
+### 7.7. Ciclo de Vida de Proyecto Limpio, Empaquetado Estructurado y Persistencia de Rutas (Fase 8.5)
+Este contrato formaliza la interacción entre el sistema de archivos del usuario, el almacenamiento local y la persistencia del proyecto:
+
+1. **Arranque Limpio y Libre de Muestras Forzadas:**
+   - La aplicación inicia estrictamente en un estado en blanco (`Sin_Titulo.analyticraft`) sin tablas, gráficos ni esquemas precargados.
+   - Se eliminan todas las referencias y botones a "Datos de Muestra" tanto en el Ribbon Archivo, en el Ribbon Inicio como en el Canvas principal. El lienzo vacío presenta una llamada a la acción limpia: `Importar archivo CSV`.
+   - La creación de un nuevo proyecto (`NEW_PROJECT`) ejecuta `resetDuckDBSession()`, purgando el catálogo de tablas en memoria y reseteando las rutas vinculadas en `localStorage`.
+
+2. **Selector Explícito de Guardado (`SaveProjectModal`):**
+   - Cuando el usuario guarda por primera vez o pulsa `Guardar Como...` (`Ctrl+Shift+S`), se despliega un diálogo modal que le permite seleccionar de forma transparente:
+     - **Proyecto Empaquetado en Carpeta:** Invoca el selector de directorios del sistema operativo (`showDirectoryPicker()`). Empaqueta el archivo descriptor `.analyticraft`, guarda copias de seguridad automáticas en el subdirectorio `/backups/` (`_backup_001.analyticraft`, etc.) y replica las fuentes en `/data/`.
+     - **Instantánea Rápida (`.analyticraft`):** Descarga directa de un único archivo JSON portable que embebe las definiciones y datasets para compartición rápida.
+
+3. **Persistencia de Rutas y Sobrescritura In-Place:**
+   - Al vincularse una carpeta de proyecto, su nombre se persiste en `localStorage` (`analyticraft_project_dir_name`) y se muestra en la pastilla de la TitleBar (`[NombreCarpeta] Mi_Proyecto.analyticraft`).
+   - Los guardados posteriores (`Ctrl+S` o clic en el icono del disco) se ejecutan de manera directa sobre la carpeta vinculada con respaldo seriado sin abrir ventanas de diálogo innecesarias, operando como una suite de software de escritorio profesional.

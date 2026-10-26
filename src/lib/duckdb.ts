@@ -46,11 +46,33 @@ export interface TableInfo {
   lastUpdated: string;
 }
 
+// In-memory registry of raw CSV contents for project packaging and offline portability
+const rawCsvCache = new Map<string, { fileName: string; content: string }>();
+
+export function getRegisteredCSVs(): Map<string, { fileName: string; content: string }> {
+  return rawCsvCache;
+}
+
+export function setRegisteredCSV(tableName: string, fileName: string, content: string): void {
+  rawCsvCache.set(tableName, { fileName, content });
+}
+
+export function clearRegisteredCSVs(): void {
+  rawCsvCache.clear();
+}
+
 export async function registerCSVFile(
   file: File,
   tableName: string
 ): Promise<TableInfo> {
   const { db, conn } = await getDuckDB();
+
+  try {
+    const text = await file.text();
+    rawCsvCache.set(tableName, { fileName: file.name, content: text });
+  } catch (err) {
+    console.warn("No se pudo almacenar en caché el texto sin formato del CSV:", file.name, err);
+  }
 
   await db.registerFileHandle(
     file.name,
@@ -218,4 +240,37 @@ export async function listRegisteredTables(): Promise<string[]> {
     return [];
   }
 }
+
+export async function resetDuckDBSession(): Promise<void> {
+  try {
+    const { conn } = await getDuckDB();
+    const tablesResult = await conn.query(`
+      SELECT table_name, table_type 
+      FROM information_schema.tables 
+      WHERE table_schema = 'main'
+    `);
+    
+    // 1. Drop views first to avoid foreign dependencies
+    for (let i = 0; i < tablesResult.numRows; i++) {
+      const tName = String(tablesResult.getChild("table_name")?.get(i));
+      const tType = String(tablesResult.getChild("table_type")?.get(i));
+      if (tType === "VIEW") {
+        await conn.query(`DROP VIEW IF EXISTS "${tName.replace(/"/g, '""')}"`);
+      }
+    }
+    // 2. Drop base tables
+    for (let i = 0; i < tablesResult.numRows; i++) {
+      const tName = String(tablesResult.getChild("table_name")?.get(i));
+      const tType = String(tablesResult.getChild("table_type")?.get(i));
+      if (tType !== "VIEW") {
+        await conn.query(`DROP TABLE IF EXISTS "${tName.replace(/"/g, '""')}"`);
+      }
+    }
+  } catch (err) {
+    console.warn("Error al purgar sesión de DuckDB:", err);
+  } finally {
+    rawCsvCache.clear();
+  }
+}
+
 

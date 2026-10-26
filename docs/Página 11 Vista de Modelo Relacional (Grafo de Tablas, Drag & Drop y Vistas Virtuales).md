@@ -35,10 +35,12 @@ Al presionar el tercer botón del riel izquierdo de vistas (`Ctrl+3`), se accede
 
 ### 2.1. Barra de Herramientas Superior (`.model-toolbar`)
 - **Identificador y Contadores:** Muestra el total de tablas cargadas y relaciones activas (`X tablas · Y relaciones`).
-- **Controles de Zoom:** Botones de alejar (`-`), porcentaje visual (`100%`), acercar (`+`) y ajuste al lienzo (`⛶`).
+- **Controles de Zoom y Ajuste:** Botones de alejar (`-`), porcentaje visual (`100%`), acercar (`+`) y botón **`Ajustar` (`⛶`)** para centrar y escalar automáticamente todo el diagrama al tamaño de pantalla (`Fit to Screen`).
 - **Botón "✨ Auto-Detectar":** Dispara el algoritmo heurístico de concordancia de nombres y compatibilidad de tipos DuckDB, resaltando claves candidatas con un aura dorada luminosa y abriendo el banner de sugerencias.
-- **Botón "Auto-Alinear (Estrella)":** Algoritmo radial que ubica la tabla de hechos en el centro (`x: 440, y: 200`) y distribuye las dimensiones uniformemente en un círculo armónico.
-- **Botón "Cascade Cascada":** Algoritmo jerárquico que reordena las dimensiones descriptivas en la fila superior (`y: 60`) y las tablas de hechos transaccionales en la fila inferior (`y: 420`), optimizando la legibilidad de flujos analíticos.
+- **Botón "Organizar Vista" (Esmeralda):** Algoritmo de cuadrícula multinivel anti-solapamiento que clasifica tablas en dimensiones y hechos, ordenándolas en filas de hasta 4 columnas calculando alturas dinámicas con zero-overlap y disparando un auto-fit.
+- **Botón "Compacto / Detallado" (`Eye`):** Conmutador que activa el Modo Compacto global (oculta campos auxiliares dejando solo claves conectadas con botones inline de expansión).
+- **Botón "Auto-Alinear (Estrella)":** Algoritmo radial avanzado con órbitas concéntricas proporcionales (anillos de 460px y 780px) que impide colisiones al graficar modelos de 10+ tablas.
+- **Botón "Cascade Cascada":** Algoritmo jerárquico multinivel con wrapping horizontal para que las tablas de hechos no formen una línea infinita fuera de pantalla.
 - **Botón "+ Nueva Relación":** Acceso al modal asistido para analistas que prefieren el teclado o selección por lista desplegable.
 
 ### 2.2. Nodos de Tabla (`.model-table-node`)
@@ -166,6 +168,19 @@ Al pulsar el botón **`✏️ Editar Relación`** en el panel inspector:
    - Permite ajustar las columnas de enlace en caso de que el modelo requiera una clave sustituta.
 4. **Regeneración Atómica en DuckDB:**
    - Al guardar, el backend descarta la vista anterior con `DROP VIEW IF EXISTS` e invoca `createVirtualRelationView` con la nueva configuración, refrescando el árbol de campos y el lienzo en menos de 10 milisegundos.
+
+### 6.5. Descongestión Visual y Enfoque Interactivo de Relaciones (Focus & Dimming)
+Cuando un proyecto escala a más de 10 tablas y decenas de relaciones (ej. 70 relaciones), el lienzo relacional puede volverse difícil de interpretar. Analyticraft aplica tres mecanismos reactivos de mitigación:
+1. **Focus & Dimming en Hover/Selección:**
+   - Al posicionar el cursor sobre cualquier nodo de tabla o hacer clic en él, todas las relaciones que no están conectadas a esa tabla se atenúan al 8% de opacidad (`opacity: 0.08`).
+   - Las relaciones conectadas directamente se iluminan en cian vibrante (`#38bdf8`, grosor 2.5px y filtro `drop-shadow`), despejando instantáneamente el camino lógico de la entidad analizada.
+2. **Ocultamiento Inteligente de Insignias Centrales:**
+   - Si el modelo supera las 15 relaciones, las pastillas intermedias `1 : *` se ocultan del fondo general para eliminar el ruido tipográfico, mostrándose únicamente cuando la relación está en foco o seleccionada.
+3. **Modo Compacto con Altura Mínima:**
+   - Las tablas con muchas columnas reducen su altura al mostrar exclusivamente las claves vinculadas, permitiendo que las líneas viajen horizontalmente con mínimas colisiones visuales.
+
+### 6.6. Persistencia del Layout de Posiciones en Proyecto (`modelLayout`)
+Cada movimiento manual de tarjetas o reordenamiento automático mediante "Organizar Vista", "Estrella" o "Cascada" actualiza el mapa de posiciones serializado en el objeto de proyecto `AnalyticraftProject.modelLayout`. Al guardar con `Ctrl+S` o exportar el proyecto empaquetado, la disposición visual de las tablas queda inmortalizada y se restaura idénticamente en sesiones futuras.
 
 ---
 

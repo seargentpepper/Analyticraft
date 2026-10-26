@@ -168,6 +168,26 @@ Este documento traza la evolución funcional y técnica de **Analyticraft**, una
   - [x] **Algoritmo Heurístico de Detección:** Coincidencia de nombres normalizados (`*_id`, `*_key`, `id`, `cod_*`, coincidencias semánticas con tablas) y verificación de tipos de datos compatibles en DuckDB.
   - [x] **Motor de Layout Jerárquico:** Algoritmo matemático para asignar coordenadas `{x, y}` automáticas a los nodos según su nivel relacional (dimensiones en capa superior, hechos en capa inferior).
 
+### 📍 Fase 8.5: Ciclo de Vida de Proyecto Limpio, Empaquetado Estructurado y Backups Seriados (Completada ✅)
+- 🖥️ **UI / Frontend:**
+  - [x] **Arranque en Blanco Garantizado:** Al abrir la UI, el espacio de trabajo inicia en estado virgen (`Sin_Titulo.analyticraft`, 0 tablas en panel Campos, 0 tarjetas en lienzo, sin precargas forzadas).
+  - [x] **Acción "Nuevo +" Reestructurada:** Al presionar `Nuevo +` en Ribbon Archivo o atajo, solicita confirmación si hay cambios pendientes, cierra el proyecto activo, vacía el catálogo visual y purga por completo el estado de DuckDB.
+  - [x] **Indicador de Proyecto Modificado (*Dirty State*):** La píldora superior (`.project-name-pill`) muestra un punto ámbar/asterisco `*` cuando existan cambios sin guardar en el lienzo, datos o relaciones.
+  - [x] **Edición en Línea del Nombre de Proyecto:** Clic o doble clic en la píldora superior para renombrar el archivo directamente sin necesidad de exportar.
+  - [x] **Diferenciación "Guardar" vs "Guardar Como...":**
+    - `Guardar` (`Ctrl+S` / icono disquete): Guarda atómicamente sobre la carpeta de proyecto activa sin abrir descargas del navegador.
+    - `Guardar Como...` (Ribbon Archivo / `Ctrl+Shift+S`): Abre el selector de directorio para elegir una nueva ubicación de proyecto.
+
+- ⚙️ **Backend / Motor de Datos:**
+  - [x] **Purga Atómica de Sesión DuckDB (`resetDuckDBSession`):** Consulta a `information_schema` o `duckdb_tables()` y ejecución en cadena de `DROP VIEW IF EXISTS` y `DROP TABLE IF EXISTS` para limpiar la memoria física de DuckDB.
+  - [x] **Empaquetado Estructurado de Proyecto (File System Access API & Fallback Autocontenido):**
+    - Persistencia en carpeta seleccionada por el usuario con subdirectorios:
+      - `<nombre>.analyticraft` (Definición JSON del proyecto).
+      - `data/` (Instantáneas de los archivos CSV cargados para portabilidad total).
+      - `temp/` (Archivos temporales y multimedia).
+      - `backups/` (Histórico de versiones seriadas).
+  - [x] **Motor de Backups Seriados (`analyticraft-backup`):** Al guardar sobre un proyecto existente, el archivo `.analyticraft` anterior se renombra automáticamente a `<nombre>_backup_NNN.analyticraft` antes de escribir la nueva versión.
+
 ---
 
 ### 📍 Fase 9: Lienzo Libre con Cuadrícula Magnética y Menú Flotante de Alineación

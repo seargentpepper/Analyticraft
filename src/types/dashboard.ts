@@ -88,8 +88,14 @@ export interface TableRelation {
   description?: string;
 }
 
+export interface ProjectSourceCSV {
+  tableName: string;
+  fileName: string;
+  content: string;
+}
+
 export interface AnalyticraftProject {
-  version: "1.0";
+  version: "1.0" | "1.1";
   name: string;
   activeTheme?: CardTheme;
   activeView?: AppViewMode;
@@ -97,6 +103,9 @@ export interface AnalyticraftProject {
   filters: GlobalFilter[];
   relations: TableRelation[];
   savedAt: string;
+  sources?: ProjectSourceCSV[];
+  backupCount?: number;
+  modelLayout?: Record<string, { x: number; y: number }>;
 }
 
 export type RibbonTab = "file" | "home" | "insert" | "modeling" | "view" | "format";
@@ -105,6 +114,7 @@ export type RibbonAction =
   | { type: "NEW_PROJECT" }
   | { type: "OPEN_PROJECT" }
   | { type: "SAVE_PROJECT" }
+  | { type: "SAVE_PROJECT_AS" }
   | { type: "COPY_CARD"; cardId?: string }
   | { type: "PASTE_CARD" }
   | { type: "DUPLICATE_CARD"; cardId?: string }

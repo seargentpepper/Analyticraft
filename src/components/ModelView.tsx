@@ -17,9 +17,19 @@ import {
   Check,
   X,
   HelpCircle,
+  LayoutGrid,
+  Minimize2,
+  ChevronDown,
+  ChevronUp,
+  Eye,
 } from "lucide-react";
 import { TableInfo } from "../lib/duckdb";
 import { TableRelation } from "../types/dashboard";
+
+interface NodePosition {
+  x: number;
+  y: number;
+}
 
 interface ModelViewProps {
   tables: TableInfo[];
@@ -42,11 +52,8 @@ interface ModelViewProps {
   onDeleteRelation: (relation: TableRelation) => Promise<void>;
   onOpenJoinModal: () => void;
   showNotification: (msg: string) => void;
-}
-
-interface NodePosition {
-  x: number;
-  y: number;
+  savedPositions?: Record<string, NodePosition>;
+  onSavePositions?: (positions: Record<string, NodePosition>) => void;
 }
 
 export interface DetectedCandidate {
@@ -70,8 +77,10 @@ export const ModelView: React.FC<ModelViewProps> = ({
   onDeleteRelation,
   onOpenJoinModal,
   showNotification,
+  savedPositions,
+  onSavePositions,
 }) => {
-  const [positions, setPositions] = useState<Record<string, NodePosition>>({});
+  const [positions, setPositions] = useState<Record<string, NodePosition>>(savedPositions || {});
   const [zoom, setZoom] = useState<number>(1);
   const [activeDraggingNode, setActiveDraggingNode] = useState<{
     tableName: string;
@@ -93,6 +102,11 @@ export const ModelView: React.FC<ModelViewProps> = ({
   } | null>(null);
 
   const [selectedRelationId, setSelectedRelationId] = useState<string | null>(null);
+
+  // New features: Compact mode, Expand overrides, Table focus & desaturation
+  const [isCompactMode, setIsCompactMode] = useState<boolean>(() => tables.length >= 6);
+  const [expandedTableNames, setExpandedTableNames] = useState<Set<string>>(new Set());
+  const [focusedTable, setFocusedTable] = useState<string | null>(null);
 
   // Fase 8: Newbie-Friendly State
   const [suggestedCandidates, setSuggestedCandidates] = useState<DetectedCandidate[]>([]);
@@ -117,6 +131,19 @@ export const ModelView: React.FC<ModelViewProps> = ({
     return keys;
   }, [suggestedCandidates]);
 
+  // Toggle individual table expansion in compact mode
+  const toggleTableExpanded = (tableName: string) => {
+    setExpandedTableNames((prev) => {
+      const next = new Set(prev);
+      if (next.has(tableName)) {
+        next.delete(tableName);
+      } else {
+        next.add(tableName);
+      }
+      return next;
+    });
+  };
+
   // Heuristic Fact vs Dimension classification
   const isFactTable = useCallback(
     (tableName: string): boolean => {
@@ -128,7 +155,11 @@ export const ModelView: React.FC<ModelViewProps> = ({
         lower.includes("fact") ||
         lower.includes("sales") ||
         lower.includes("order") ||
-        lower.includes("transac")
+        lower.includes("transac") ||
+        lower.includes("gasto") ||
+        lower.includes("inventario") ||
+        lower.includes("logistica") ||
+        lower.includes("flujo")
       ) {
         return true;
       }
@@ -141,66 +172,251 @@ export const ModelView: React.FC<ModelViewProps> = ({
     [tables, relations]
   );
 
-  // Auto-arrange in Star Schema layout (Radial)
+  // Auto-fit all positioned tables into viewport
+  const handleFitToScreen = useCallback(
+    (customPositions?: Record<string, NodePosition>) => {
+      const posMap = customPositions || positions;
+      const tableNames = Object.keys(posMap);
+      if (tableNames.length === 0) return;
+
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+
+      tableNames.forEach((name) => {
+        const p = posMap[name];
+        if (!p) return;
+        const tbl = tables.find((t) => t.name === name);
+        const isExp = expandedTableNames.has(name) || !isCompactMode;
+        const colCount = tbl?.columns.length || 6;
+        const h = isExp ? Math.min(340, 70 + colCount * 24) : 130;
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x + CARD_WIDTH);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y + h);
+      });
+
+      const totalW = maxX - minX + 160;
+      const totalH = maxY - minY + 160;
+
+      const viewportW = canvasRef.current?.clientWidth || window.innerWidth - 120;
+      const viewportH = canvasRef.current?.clientHeight || window.innerHeight - 200;
+
+      const scaleX = viewportW / totalW;
+      const scaleY = viewportH / totalH;
+      const optimalZoom = Math.min(1.1, Math.max(0.42, Math.min(scaleX, scaleY)));
+
+      setZoom(Math.round(optimalZoom * 100) / 100);
+
+      if (canvasRef.current) {
+        canvasRef.current.scrollTo({
+          left: Math.max(0, minX * optimalZoom - 40),
+          top: Math.max(0, minY * optimalZoom - 40),
+          behavior: "smooth",
+        });
+      }
+    },
+    [positions, tables, isCompactMode, expandedTableNames]
+  );
+
+  // 1. Limpiar y Organizar Vista: Cuadrícula multinivel balanceada anti-solapamiento
+  const handleCleanAndOrganizeLayout = useCallback(() => {
+    if (tables.length === 0) return;
+
+    // Helper to calculate approximate height of a table node
+    const getTableHeight = (tbl: TableInfo) => {
+      const isExp = expandedTableNames.has(tbl.name) || !isCompactMode;
+      if (!isExp) {
+        const relColCount = tbl.columns.filter((col) =>
+          relations.some(
+            (r) =>
+              (r.sourceTable === tbl.name && r.sourceColumn === col.name) ||
+              (r.targetTable === tbl.name && r.targetColumn === col.name)
+          )
+        ).length;
+        return CARD_HEADER_HEIGHT + Math.max(1, relColCount) * FIELD_ROW_HEIGHT + 35;
+      }
+      const visibleCols = Math.min(tbl.columns.length, 9);
+      return CARD_HEADER_HEIGHT + visibleCols * FIELD_ROW_HEIGHT + 30;
+    };
+
+    const getDegree = (name: string) =>
+      relations.filter((r) => r.sourceTable === name || r.targetTable === name).length;
+
+    const dimTables = tables.filter((t) => !isFactTable(t.name));
+    const factTables = tables.filter((t) => isFactTable(t.name));
+
+    // Sort by connectivity so related tables stay close
+    dimTables.sort((a, b) => getDegree(b.name) - getDegree(a.name));
+    factTables.sort((a, b) => getDegree(b.name) - getDegree(a.name));
+
+    const newPositions: Record<string, NodePosition> = {};
+    const colSpacing = CARD_WIDTH + 65; // 315px
+    const MAX_COLS_PER_ROW = tables.length > 8 ? 4 : 3;
+
+    let currentY = 50;
+
+    // 1. Distribute Dimensions in top rows
+    if (dimTables.length > 0) {
+      const dimRowsCount = Math.ceil(dimTables.length / MAX_COLS_PER_ROW);
+      for (let r = 0; r < dimRowsCount; r++) {
+        const rowTables = dimTables.slice(r * MAX_COLS_PER_ROW, (r + 1) * MAX_COLS_PER_ROW);
+        let maxRowH = 0;
+        rowTables.forEach((tbl, colIdx) => {
+          newPositions[tbl.name] = {
+            x: 60 + colIdx * colSpacing,
+            y: currentY,
+          };
+          maxRowH = Math.max(maxRowH, getTableHeight(tbl));
+        });
+        currentY += maxRowH + 60;
+      }
+    }
+
+    // Buffer between Dimensions and Fact tables
+    currentY += 25;
+
+    // 2. Distribute Facts in bottom rows
+    if (factTables.length > 0) {
+      const factRowsCount = Math.ceil(factTables.length / MAX_COLS_PER_ROW);
+      for (let r = 0; r < factRowsCount; r++) {
+        const rowTables = factTables.slice(r * MAX_COLS_PER_ROW, (r + 1) * MAX_COLS_PER_ROW);
+        let maxRowH = 0;
+        rowTables.forEach((tbl, colIdx) => {
+          newPositions[tbl.name] = {
+            x: 60 + colIdx * colSpacing,
+            y: currentY,
+          };
+          maxRowH = Math.max(maxRowH, getTableHeight(tbl));
+        });
+        currentY += maxRowH + 60;
+      }
+    }
+
+    setPositions(newPositions);
+    if (onSavePositions) onSavePositions(newPositions);
+
+    setTimeout(() => {
+      handleFitToScreen(newPositions);
+    }, 60);
+
+    showNotification(
+      `Vista organizada limpiamente: ${tables.length} tablas distribuidas en cuadrícula multinivel sin solapamientos`
+    );
+  }, [tables, relations, isFactTable, isCompactMode, expandedTableNames, onSavePositions, handleFitToScreen, showNotification]);
+
+  // 2. Auto-arrange in Star Schema layout (Radial con órbitas concéntricas)
   const handleStarLayout = useCallback(() => {
     if (tables.length === 0) return;
 
-    const factTbl = tables.find((t) => isFactTable(t.name)) || tables[0];
-    const dimTables = tables.filter((t) => t.name !== factTbl.name);
+    const getDegree = (name: string) =>
+      relations.filter((r) => r.sourceTable === name || r.targetTable === name).length;
 
-    const centerX = 440;
-    const centerY = 200;
-    const radiusX = 360;
-    const radiusY = 220;
+    const sortedByDegree = [...tables].sort((a, b) => getDegree(b.name) - getDegree(a.name));
+    const hubTable = sortedByDegree[0];
+    const otherTables = tables.filter((t) => t.name !== hubTable.name);
 
-    const newPositions: Record<string, NodePosition> = {
-      [factTbl.name]: { x: centerX, y: centerY },
-    };
+    const newPositions: Record<string, NodePosition> = {};
 
-    dimTables.forEach((dim, idx) => {
-      const angle = (2 * Math.PI * idx) / Math.max(dimTables.length, 1) - Math.PI / 2;
-      const x = Math.round(centerX + radiusX * Math.cos(angle));
-      const y = Math.round(centerY + radiusY * Math.sin(angle));
-      newPositions[dim.name] = { x: Math.max(40, x), y: Math.max(40, y) };
-    });
+    if (otherTables.length <= 6) {
+      const centerX = 520;
+      const centerY = 360;
+      const radiusX = 420;
+      const radiusY = 280;
+
+      newPositions[hubTable.name] = { x: centerX, y: centerY };
+
+      otherTables.forEach((tbl, idx) => {
+        const angle = (2 * Math.PI * idx) / otherTables.length - Math.PI / 2;
+        newPositions[tbl.name] = {
+          x: Math.max(40, Math.round(centerX + radiusX * Math.cos(angle))),
+          y: Math.max(40, Math.round(centerY + radiusY * Math.sin(angle))),
+        };
+      });
+    } else {
+      // 2 Órbitas Concéntricas para evitar cualquier choque
+      const centerX = 680;
+      const centerY = 460;
+      newPositions[hubTable.name] = { x: centerX, y: centerY };
+
+      const innerCount = Math.min(5, Math.ceil(otherTables.length / 2));
+      const innerTables = otherTables.slice(0, innerCount);
+      const outerTables = otherTables.slice(innerCount);
+
+      const innerRadiusX = 390;
+      const innerRadiusY = 270;
+
+      innerTables.forEach((tbl, idx) => {
+        const angle = (2 * Math.PI * idx) / innerTables.length - Math.PI / 2;
+        newPositions[tbl.name] = {
+          x: Math.max(40, Math.round(centerX + innerRadiusX * Math.cos(angle))),
+          y: Math.max(40, Math.round(centerY + innerRadiusY * Math.sin(angle))),
+        };
+      });
+
+      const outerRadiusX = 720;
+      const outerRadiusY = 500;
+
+      outerTables.forEach((tbl, idx) => {
+        const angle = (2 * Math.PI * idx) / outerTables.length - Math.PI / 4;
+        newPositions[tbl.name] = {
+          x: Math.max(40, Math.round(centerX + outerRadiusX * Math.cos(angle))),
+          y: Math.max(40, Math.round(centerY + outerRadiusY * Math.sin(angle))),
+        };
+      });
+    }
 
     setPositions(newPositions);
-    showNotification("Esquema en estrella auto-distribuido");
-  }, [tables, isFactTable, showNotification]);
+    if (onSavePositions) onSavePositions(newPositions);
+    setTimeout(() => handleFitToScreen(newPositions), 60);
+    showNotification(`Esquema en estrella balanceado: '${hubTable.name}' en el centro`);
+  }, [tables, relations, onSavePositions, handleFitToScreen, showNotification]);
 
-  // Fase 8: Auto-Alineación en Cascada (Dimensiones arriba, Hechos abajo)
+  // 3. Auto-Alineación en Cascada multinivel (Dimensiones arriba, Hechos abajo)
   const handleCascadeLayout = useCallback(() => {
     if (tables.length === 0) return;
 
-    // Dimensions: tables that are not primary fact
     const factTables = tables.filter((t) => isFactTable(t.name));
     const dimTables = tables.filter((t) => !isFactTable(t.name));
 
     const newPositions: Record<string, NodePosition> = {};
-    const colSpacing = CARD_WIDTH + 50;
+    const colSpacing = CARD_WIDTH + 65;
+    const MAX_PER_ROW = 4;
 
-    // 1. Place Dimensions in Top Row (y = 60)
-    dimTables.forEach((dim, idx) => {
-      newPositions[dim.name] = {
-        x: 60 + idx * colSpacing,
-        y: 60,
-      };
-    });
+    let currentY = 50;
 
-    // 2. Place Fact Tables in Bottom Row (y = 420)
-    const totalDimWidth = dimTables.length * colSpacing;
-    const factStartX = Math.max(60, (totalDimWidth - factTables.length * colSpacing) / 2);
+    const dimRows = Math.ceil(dimTables.length / MAX_PER_ROW);
+    for (let r = 0; r < dimRows; r++) {
+      const slice = dimTables.slice(r * MAX_PER_ROW, (r + 1) * MAX_PER_ROW);
+      slice.forEach((tbl, idx) => {
+        newPositions[tbl.name] = {
+          x: 60 + idx * colSpacing,
+          y: currentY,
+        };
+      });
+      currentY += (isCompactMode ? 140 : 280) + 60;
+    }
 
-    factTables.forEach((fact, idx) => {
-      newPositions[fact.name] = {
-        x: Math.round(factStartX + idx * colSpacing),
-        y: 420,
-      };
-    });
+    currentY += 30;
+
+    const factRows = Math.ceil(factTables.length / MAX_PER_ROW);
+    for (let r = 0; r < factRows; r++) {
+      const slice = factTables.slice(r * MAX_PER_ROW, (r + 1) * MAX_PER_ROW);
+      slice.forEach((tbl, idx) => {
+        newPositions[tbl.name] = {
+          x: 60 + idx * colSpacing,
+          y: currentY,
+        };
+      });
+      currentY += (isCompactMode ? 140 : 280) + 60;
+    }
 
     setPositions(newPositions);
-    showNotification("Alineación en Cascada aplicada: Dimensiones arriba, Hechos abajo");
-  }, [tables, isFactTable, showNotification]);
+    if (onSavePositions) onSavePositions(newPositions);
+    setTimeout(() => handleFitToScreen(newPositions), 60);
+    showNotification("Alineación en Cascada multinivel aplicada");
+  }, [tables, isFactTable, isCompactMode, onSavePositions, handleFitToScreen, showNotification]);
 
   // Fase 8: Algoritmo Heurístico de Detección de Relaciones
   const handleAutoDetectRelations = useCallback(() => {
@@ -385,12 +601,12 @@ export const ModelView: React.FC<ModelViewProps> = ({
     setEditingRelation(null);
   };
 
-  // Initialize positions on first load
+  // Initialize positions on first load: clean & organize automatically
   useEffect(() => {
     if (tables.length > 0 && Object.keys(positions).length === 0) {
-      handleStarLayout();
+      handleCleanAndOrganizeLayout();
     }
-  }, [tables, positions, handleStarLayout]);
+  }, [tables, positions, handleCleanAndOrganizeLayout]);
 
   // Window drag listeners for moving nodes
   useEffect(() => {
@@ -399,18 +615,20 @@ export const ModelView: React.FC<ModelViewProps> = ({
       const deltaX = (e.clientX - activeDraggingNode.startX) / zoom;
       const deltaY = (e.clientY - activeDraggingNode.startY) / zoom;
 
-      setPositions((prev) => ({
-        ...prev,
+      const updated = {
+        ...positions,
         [activeDraggingNode.tableName]: {
           x: Math.max(20, Math.round(activeDraggingNode.initialNodeX + deltaX)),
           y: Math.max(20, Math.round(activeDraggingNode.initialNodeY + deltaY)),
         },
-      }));
+      };
+      setPositions(updated);
     };
 
     const handleMouseUp = () => {
       if (activeDraggingNode) {
         setActiveDraggingNode(null);
+        if (onSavePositions) onSavePositions(positions);
       }
     };
 
@@ -422,29 +640,35 @@ export const ModelView: React.FC<ModelViewProps> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [activeDraggingNode, zoom]);
+  }, [activeDraggingNode, zoom, positions, onSavePositions]);
 
-  // Calculate connection coordinates for SVG lines
+  // Calculate connection coordinates for SVG lines with compact mode awareness
   const connectorPaths = useMemo(() => {
+    const getVisibleColIdx = (tblName: string, colName: string) => {
+      const tbl = tables.find((t) => t.name === tblName);
+      if (!tbl) return 0;
+      const isExp = expandedTableNames.has(tbl.name) || !isCompactMode;
+      if (isExp) {
+        const idx = tbl.columns.findIndex((c) => c.name === colName);
+        return Math.min(Math.max(0, idx), 8);
+      }
+      const visibleCols = tbl.columns.filter((c) =>
+        relations.some(
+          (r) =>
+            (r.sourceTable === tbl.name && r.sourceColumn === c.name) ||
+            (r.targetTable === tbl.name && r.targetColumn === c.name)
+        )
+      );
+      const idx = visibleCols.findIndex((c) => c.name === colName);
+      return Math.min(Math.max(0, idx), 8);
+    };
+
     return relations.map((rel) => {
       const sPos = positions[rel.sourceTable] || { x: 100, y: 100 };
       const tPos = positions[rel.targetTable] || { x: 450, y: 100 };
 
-      const sTable = tables.find((t) => t.name === rel.sourceTable);
-      const tTable = tables.find((t) => t.name === rel.targetTable);
-
-      const sColIdx = sTable
-        ? Math.max(
-            0,
-            sTable.columns.findIndex((c) => c.name === rel.sourceColumn)
-          )
-        : 0;
-      const tColIdx = tTable
-        ? Math.max(
-            0,
-            tTable.columns.findIndex((c) => c.name === rel.targetColumn)
-          )
-        : 0;
+      const sColIdx = getVisibleColIdx(rel.sourceTable, rel.sourceColumn);
+      const tColIdx = getVisibleColIdx(rel.targetTable, rel.targetColumn);
 
       const sColY = sPos.y + CARD_HEADER_HEIGHT + sColIdx * FIELD_ROW_HEIGHT + FIELD_ROW_HEIGHT / 2;
       const tColY = tPos.y + CARD_HEADER_HEIGHT + tColIdx * FIELD_ROW_HEIGHT + FIELD_ROW_HEIGHT / 2;
@@ -476,7 +700,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
         midY,
       };
     });
-  }, [relations, positions, tables]);
+  }, [relations, positions, tables, isCompactMode, expandedTableNames]);
 
   return (
     <div className="model-view-container">
@@ -494,11 +718,11 @@ export const ModelView: React.FC<ModelViewProps> = ({
         </div>
 
         <div className="model-toolbar-actions">
-          {/* Zoom controls */}
+          {/* Zoom & Fit controls */}
           <div className="model-zoom-controls">
             <button
               className="model-tool-btn"
-              onClick={() => setZoom((z) => Math.max(0.5, Math.round((z - 0.1) * 10) / 10))}
+              onClick={() => setZoom((z) => Math.max(0.4, Math.round((z - 0.1) * 10) / 10))}
               title="Alejar (Zoom Out)"
             >
               <ZoomOut size={13} />
@@ -513,14 +737,38 @@ export const ModelView: React.FC<ModelViewProps> = ({
             </button>
             <button
               className="model-tool-btn"
-              onClick={() => setZoom(1)}
-              title="Restablecer escala al 100%"
+              onClick={() => handleFitToScreen()}
+              title="Ajustar todas las tablas al lienzo (Fit to Screen)"
             >
               <Maximize2 size={12} />
             </button>
           </div>
 
-          {/* Fase 8: Auto-Detect Relations */}
+          {/* Clean & Organize Layout Button (Prominent) */}
+          <button
+            className="model-action-btn clean-btn"
+            onClick={handleCleanAndOrganizeLayout}
+            title="Limpiar y Organizar Vista: Distribuye automáticamente todas las tablas en una cuadrícula multinivel balanceada sin solapamientos"
+          >
+            <LayoutGrid size={13} />
+            <span>Organizar Vista</span>
+          </button>
+
+          {/* Toggle Compact Mode */}
+          <button
+            className={`model-action-btn ${isCompactMode ? "toggle-active" : "secondary"}`}
+            onClick={() => setIsCompactMode((c) => !c)}
+            title={
+              isCompactMode
+                ? "Modo Compacto Activo: Mostrando únicamente claves relacionadas. Clic para ver todas las columnas."
+                : "Modo Detallado Activo: Mostrando todas las columnas. Clic para compactar."
+            }
+          >
+            {isCompactMode ? <Minimize2 size={12} /> : <Eye size={12} />}
+            <span>{isCompactMode ? "Compacto" : "Detallado"}</span>
+          </button>
+
+          {/* Auto-Detect Relations */}
           <button
             className={`model-action-btn ${suggestedCandidates.length > 0 ? "active-sug" : "secondary"}`}
             onClick={handleAutoDetectRelations}
@@ -534,17 +782,17 @@ export const ModelView: React.FC<ModelViewProps> = ({
           <button
             className="model-tool-btn-layout"
             onClick={handleStarLayout}
-            title="Distribuir radialmente en esquema de estrella"
+            title="Distribuir radialmente en órbitas concéntricas sin solapamiento"
           >
             <Sparkles size={11} color="#cca700" />
             <span>Estrella</span>
           </button>
 
-          {/* Fase 8: Cascade Layout */}
+          {/* Cascade Layout */}
           <button
             className="model-tool-btn-layout"
             onClick={handleCascadeLayout}
-            title="Distribuir en cascada: Dimensiones arriba, Hechos abajo"
+            title="Distribuir en cascada multinivel: Dimensiones arriba, Hechos abajo"
           >
             <GitBranch size={11} color="#4ec9b0" />
             <span>Cascada</span>
@@ -567,9 +815,7 @@ export const ModelView: React.FC<ModelViewProps> = ({
       <div className="model-drag-instructions-strip">
         <Info size={13} color="#9cdcfe" />
         <span>
-          <strong>Asistente Newbie-Friendly:</strong> Arrastra cualquier columna de una tabla sobre
-          otra para vincularlas, o usa <strong>Auto-Detectar</strong> para encontrar relaciones clave
-          automáticamente.
+          <strong>Asistente de Modelo:</strong> Arrastra columnas entre tablas para vincularlas. Usa <strong>Organizar Vista</strong> para desenredar diagramas complejos o posa el cursor sobre una tabla para enfocar solo sus relaciones.
         </span>
       </div>
 
@@ -659,11 +905,25 @@ export const ModelView: React.FC<ModelViewProps> = ({
 
             {connectorPaths.map(({ relation, pathData, x1, y1, x2, y2, midX, midY }) => {
               const isSelected = selectedRelationId === relation.id;
+              const isConnectedToFocus =
+                !focusedTable ||
+                relation.sourceTable === focusedTable ||
+                relation.targetTable === focusedTable;
+              const isProminent = isSelected || (focusedTable !== null && isConnectedToFocus);
+
+              // Line opacity: if focused, dim non-connected lines heavily to 0.08
+              const lineOpacity = focusedTable
+                ? (isConnectedToFocus ? 1 : 0.08)
+                : (relations.length > 20 ? 0.45 : 0.85);
+
+              // Hide mid-pills when crowded unless focused/selected
+              const showMidPill = relations.length <= 15 || isProminent || isSelected;
 
               return (
                 <g
                   key={relation.id}
-                  className={`relation-svg-group ${isSelected ? "selected" : ""}`}
+                  className={`relation-svg-group ${isSelected ? "selected" : ""} ${isProminent ? "prominent" : ""}`}
+                  style={{ opacity: lineOpacity, transition: "opacity 0.2s ease" }}
                   onClick={() => setSelectedRelationId(isSelected ? null : relation.id)}
                 >
                   {/* Outer glow stroke for selection/hover */}
@@ -677,7 +937,10 @@ export const ModelView: React.FC<ModelViewProps> = ({
                   <path
                     d={pathData}
                     className="relation-line-main"
-                    strokeWidth={isSelected ? 2.5 : 2}
+                    strokeWidth={isProminent ? 2.5 : 1.8}
+                    style={{
+                      stroke: isProminent ? "#38bdf8" : "#4ec9b0",
+                    }}
                   />
 
                   {/* Cardinality Badge: Many (*) on Source / Fact with Natural Language Tooltip */}
@@ -716,29 +979,31 @@ export const ModelView: React.FC<ModelViewProps> = ({
                     </text>
                   </g>
 
-                  {/* Directional Center Pill with Natural Language Tooltip */}
-                  <g transform={`translate(${midX - 35}, ${midY - 12})`}>
-                    <title>
-                      {`Relación 1 a Muchos: Un registro en '${relation.targetTable}' filtra múltiples filas en '${relation.sourceTable}'. El filtro fluye hacia los Hechos.`}
-                    </title>
-                    <rect
-                      x="0"
-                      y="0"
-                      width="70"
-                      height="22"
-                      rx="11"
-                      className="relation-mid-pill"
-                    />
-                    <text x="30" y="14" textAnchor="middle" className="relation-mid-text">
-                      1 : *
-                    </text>
-                    <path
-                      d="M 46 11 L 52 11 M 49 8 L 52 11 L 49 14"
-                      stroke="#4ec9b0"
-                      strokeWidth="1.5"
-                      fill="none"
-                    />
-                  </g>
+                  {/* Directional Center Pill with Natural Language Tooltip (Hidden when crowded) */}
+                  {showMidPill && (
+                    <g transform={`translate(${midX - 35}, ${midY - 12})`}>
+                      <title>
+                        {`Relación 1 a Muchos: Un registro en '${relation.targetTable}' filtra múltiples filas en '${relation.sourceTable}'. El filtro fluye hacia los Hechos.`}
+                      </title>
+                      <rect
+                        x="0"
+                        y="0"
+                        width="70"
+                        height="22"
+                        rx="11"
+                        className="relation-mid-pill"
+                      />
+                      <text x="30" y="14" textAnchor="middle" className="relation-mid-text">
+                        1 : *
+                      </text>
+                      <path
+                        d="M 46 11 L 52 11 M 49 8 L 52 11 L 49 14"
+                        stroke="#4ec9b0"
+                        strokeWidth="1.5"
+                        fill="none"
+                      />
+                    </g>
+                  )}
                 </g>
               );
             })}
@@ -748,15 +1013,32 @@ export const ModelView: React.FC<ModelViewProps> = ({
           {tables.map((tbl) => {
             const pos = positions[tbl.name] || { x: 50, y: 50 };
             const isFact = isFactTable(tbl.name);
+            const isTableExpanded = expandedTableNames.has(tbl.name) || !isCompactMode;
+
+            // Columns to display (in compact mode, show only fields in relations)
+            const columnsToDisplay = isTableExpanded
+              ? tbl.columns
+              : tbl.columns.filter((col) =>
+                  relations.some(
+                    (r) =>
+                      (r.sourceTable === tbl.name && r.sourceColumn === col.name) ||
+                      (r.targetTable === tbl.name && r.targetColumn === col.name)
+                  )
+                );
+
+            const hiddenCount = tbl.columns.length - columnsToDisplay.length;
+            const isFocused = focusedTable === tbl.name;
 
             return (
               <div
                 key={tbl.name}
-                className={`model-table-node ${isFact ? "fact-node" : "dim-node"}`}
+                className={`model-table-node ${isFact ? "fact-node" : "dim-node"} ${isFocused ? "focused" : ""}`}
                 style={{
                   transform: `translate(${pos.x}px, ${pos.y}px)`,
                   width: `${CARD_WIDTH}px`,
                 }}
+                onMouseEnter={() => setFocusedTable(tbl.name)}
+                onMouseLeave={() => setFocusedTable((curr) => (curr === tbl.name ? null : curr))}
               >
                 {/* Node Header (Draggable Handle) */}
                 <div
@@ -784,14 +1066,28 @@ export const ModelView: React.FC<ModelViewProps> = ({
                     </span>
                   </div>
 
-                  <span className={`node-classification-tag ${isFact ? "fact" : "dim"}`}>
-                    {isFact ? "Hechos" : "Dimensión"}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span className={`node-classification-tag ${isFact ? "fact" : "dim"}`}>
+                      {isFact ? "Hechos" : "Dimensión"}
+                    </span>
+                    {isCompactMode && (
+                      <button
+                        className="model-node-collapse-toggle"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleTableExpanded(tbl.name);
+                        }}
+                        title={isTableExpanded ? "Compactar tabla" : "Expandir todas las columnas"}
+                      >
+                        {isTableExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Node Columns List */}
                 <div className="model-node-columns-list">
-                  {tbl.columns.map((col) => {
+                  {columnsToDisplay.map((col) => {
                     const isKeyInRelation = relations.some(
                       (r) =>
                         (r.sourceTable === tbl.name && r.sourceColumn === col.name) ||
@@ -890,6 +1186,34 @@ export const ModelView: React.FC<ModelViewProps> = ({
                       </div>
                     );
                   })}
+
+                  {/* Expander / Collapser footer button in compact mode */}
+                  {isCompactMode && hiddenCount > 0 && (
+                    <button
+                      className="model-expand-columns-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTableExpanded(tbl.name);
+                      }}
+                      title="Expandir todas las columnas de esta tabla"
+                    >
+                      <span>+ {hiddenCount} campos adicionales</span>
+                      <ChevronDown size={10} />
+                    </button>
+                  )}
+                  {isCompactMode && isTableExpanded && tbl.columns.length > columnsToDisplay.length && (
+                    <button
+                      className="model-expand-columns-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTableExpanded(tbl.name);
+                      }}
+                      title="Compactar a solo claves de relación"
+                    >
+                      <span>Compactar tabla</span>
+                      <ChevronUp size={10} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Node Footer: Row Count */}

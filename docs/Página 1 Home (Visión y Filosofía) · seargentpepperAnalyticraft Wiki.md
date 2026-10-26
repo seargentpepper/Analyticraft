@@ -35,3 +35,8 @@ El valor de un análisis reside en que la dirección tome decisiones informadas 
 Rechazamos el *bloatware*:
 - Arquitectura construida sobre **Tauri (Rust)** y **DuckDB**, consumiendo una fracción mínima de RAM.
 - Adopción estricta del formato **CSV** como estándar universal de entrada, evitando la pesadez de parsers binarios propietarios.
+
+### 4. Persistencia Profesional y Arranque Limpio
+Un software analítico profesional respeta los hábitos y rutas de almacenamiento del usuario:
+- **Persistencia en el Sistema de Archivos:** Las rutas de guardado se recuerdan de forma transparente (`[NombreCarpeta]`), empaquetando copias locales de datos en `/data/` y respaldos seriados continuos en `/backups/` (`_backup_NNN`), sobrescribiendo en caliente sin ventanas emergentes molestas.
+- **Arranque Limpio y Libre de Confusiones:** El lienzo y la barra Ribbon inician limpios sin datos de muestra forzados ni distracciones prefabricadas, permitiendo que el analista conecte sus propios datos de negocio desde el primer segundo.

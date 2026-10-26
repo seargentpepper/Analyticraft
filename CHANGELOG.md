@@ -4,6 +4,56 @@ Todas las modificaciones notables, adiciones funcionales y mejoras de diseño de
 
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/), y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-10-25
+
+### ⚠️ Acciones Correctivas y Mejoras de Arquitectura (Ciclo de Vida, Persistencia de Guardado y Eliminación de Muestras)
+- **Modal Interactivo de Guardado (`SaveProjectModal`):**
+  - Implementado diálogo modal explícito que pregunta claramente al usuario el destino y método de guardado:
+    1. **Proyecto Empaquetado (Carpeta Persistente):** Permite elegir el directorio en disco mediante `showDirectoryPicker()`, creando las subcarpetas `/data/` (copias de seguridad de los CSVs cargados), `/backups/` (historial seriado de versiones) y `/temp/`.
+    2. **Instantánea Rápida (`.analyticraft`):** Descarga directa de un archivo JSON portable autocontenido con los datos en crudo para compartir rápidamente.
+- **Modal Interactivo de Apertura y Corrección de Visualización de Archivos (`OpenProjectModal`):**
+  - Resuelto el problema por el cual el explorador de Windows no mostraba ningún archivo `.analyticraft` al presionar "Abrir":
+    - **Causa Raíz Identificada:** La función ejecutaba directamente `showDirectoryPicker()`, un diálogo de sistema operativo exclusivo para seleccionar carpetas que por diseño de Windows **oculta automáticamente todos los archivos**, provocando que carpetas sin subdirectorios (como `Downloads/test/data`) mostraran erróneamente *"Ningún elemento coincide con el criterio de búsqueda"*.
+    - **Solución Implementada:** Se diseñó el nuevo diálogo `OpenProjectModal` que ofrece dos vías claras:
+      1. **Abrir Archivo (`.analyticraft` / `.json`) [Recomendado]:** Invoca el selector nativo de archivos (`showOpenFilePicker` con fallback a input de archivo) donde el Explorador de Windows **sí visualiza y permite seleccionar directamente los archivos `.analyticraft`**.
+      2. **Abrir Carpeta Empaquetada:** Explica explícitamente al usuario que el diálogo de carpetas solo muestra directorios y lo guía a seleccionar la carpeta raíz del proyecto (ej. `Downloads/test`) para vincular la persistencia y copias de seguridad continuas.
+  - Añadido soporte para atajo de teclado nativo `Ctrl+O` para abrir el diálogo de proyectos.
+- **Persistencia de Rutas de Guardado y Sobrescritura In-Place Profesional:**
+  - Siguiendo los estándares de software de escritorio profesional, Analyticraft ahora recuerda de forma persistente la carpeta activa en `localStorage` (`analyticraft_project_dir_name`).
+  - La pastilla del proyecto en la barra de título refleja visiblemente la carpeta activa vinculada (`[NombreCarpeta] Proyecto.analyticraft`).
+  - Los guardados posteriores (`Ctrl+S` o botón Guardar) sobrescriben en el directorio vinculado sin desplegar modales innecesarios, creando en paralelo una copia de seguridad en `/backups/_backup_NNN.analyticraft`.
+  - El botón `Guardar Como` (`Ctrl+Shift+S`) permite en cualquier momento reubicar o reempaquetar el proyecto en una nueva carpeta.
+- **Eliminación Total de Alusiones a "Datos de Muestra":**
+  - Removido el grupo `Demostración` y el botón `Muestra PyME` de la pestaña **Archivo** del Ribbon.
+  - Removido el botón `Muestra PyME` de la pestaña **Inicio** del Ribbon.
+  - Eliminado el botón `Cargar Datos de Muestra` del lienzo de trabajo inicial vacío; reemplazado por un botón profesional y limpio de importación: `Importar archivo CSV` junto a un icono neutral de BI (`BarChart3`).
+- **Arranque Limpio y Restablecimiento de Sesión (`NEW_PROJECT`):**
+  - La aplicación inicia estrictamente en blanco (`Sin_Titulo.analyticraft`) sin tablas ni gráficos precargados ni nombres de demostración.
+  - La acción `Nuevo` ejecuta `resetDuckDBSession()`, purgando el catálogo de DuckDB en memoria y desvinculando la ruta de carpeta previa.
+- **Herramientas de Limpieza y Organización de Vista para Modelos Complejos (`ModelView.tsx`):**
+  - **Botón y Algoritmo "Organizar Vista" (`handleCleanAndOrganizeLayout`):**
+    - Distribución automática en cuadrícula multinivel anti-solapamiento (Zero-Overlap) diseñada para modelos con decenas de tablas y relaciones (ej. 12 tablas y 70 relaciones).
+    - Separa ordenadamente dimensiones (capas superiores) y hechos (capas inferiores) envolviendo en filas de máximo 4 tarjetas por nivel con alturas dinámicas y ordenamiento por conectividad.
+    - Ejecuta un encuadre automático al lienzo tras reubicar los nodos.
+  - **Modo Compacto de Tablas (`isCompactMode`):**
+    - Activado por defecto en modelos con 6 o más tablas para reducir la altura vertical de las tarjetas.
+    - Filtra las columnas visibles mostrando únicamente aquellas que forman parte de relaciones activas, incorporando un botón colapsable inline (`+ X campos adicionales`) para expandir/colapsar por tabla o de forma global con el botón `Compacto` de la barra de herramientas.
+  - **Atenuación Selectiva y Enfoque de Relaciones (Focus & Dimming):**
+    - Al posar el ratón (`hover`) o hacer clic en cualquier tabla, las relaciones ajenas se atenúan al 8% de opacidad (`opacity: 0.08`), mientras que las líneas vinculadas se iluminan con resplandor cian brillante (`#38bdf8`), eliminando el efecto de "red de araña" ininteligible.
+    - Reducción inteligente de insignias: las etiquetas centrales `1 : *` se ocultan cuando existen más de 15 relaciones a menos que la relación esté seleccionada o en foco.
+    - Precisión matemática en el anclaje de curvas Bézier SVG contemplando el índice de columnas visibles tanto en modo compacto como expandido.
+  - **Corrección de Algoritmos Estrella y Cascada:**
+    - *Alineación en Estrella:* Sustituida la elipse fija de radio pequeño (que causaba que las tarjetas se apilaran encima unas de otras) por un sistema de órbitas concéntricas dinámicas que calcula radios seguros proporcionales a la cantidad de tablas.
+    - *Alineación en Cascada:* Implementado wrapping multinivel (máximo 4 tablas por fila) para evitar la hilera horizontal infinita de hechos.
+  - **Botón "Ajustar al Lienzo" (`handleFitToScreen`):**
+    - Calcula el Bounding Box de todos los nodos en tiempo real y ajusta automáticamente la escala de zoom (entre 42% y 110%) y el centrado del lienzo.
+  - **Persistencia de Posiciones de Tablas (`modelLayout`):**
+    - Las coordenadas personalizadas de cada tabla en el lienzo ahora se persisten en la estructura del proyecto `.analyticraft` y se restauran fielmente al reabrir la carpeta o el archivo.
+- **Documentación Centralizada en `docs/`:**
+  - Actualizadas las páginas de la wiki en `docs/` (Página 1, Página 6, Página 8 y Página 11) y el `README.md` documentando los contratos de persistencia de proyectos empaquetados, el arranque limpio y las nuevas capacidades de limpieza y organización del modelador relacional.
+
+---
+
 ## [0.8.1] - 2026-10-24
 
 ### 🐛 Corregido (Diagnóstico Ágil de Catálogo DuckDB, Visibilidad Contextual y Estabilidad HMR)

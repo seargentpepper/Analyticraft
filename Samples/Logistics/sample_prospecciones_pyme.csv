@@ -1,0 +1,13 @@
+id_oportunidad,id_cliente,id_vendedor,id_producto,nombre_oportunidad,categoria,monto_estimado_mxn,etapa_pipeline,probabilidad_cierre_pct,avance_prospeccion_pct,interes_clave_cliente,fecha_contacto_inicial,fecha_cierre_esperada,estado_prospeccion
+OPP-2026-001,TechCorp,VEND-001,PROD-010,Renovación Cluster Cloud & DevOps,Servicios,135000,4. Negociación Ejecutiva,85,80,Automatización de despliegues y contenedores,2026-03-05,2026-05-18,Avanzada
+OPP-2026-002,TechCorp,VEND-001,PROD-001,Expansión Devs Laptops Pro 16,Electrónica,97500,5. Ganada (Compromiso),95,95,Equipos de 64GB RAM para arquitectos,2026-03-15,2026-05-20,Ganada
+OPP-2026-003,PyME Solutions,VEND-002,PROD-007,Renovación Ergonomía Piso Consultores,Mobiliario,58000,3. Propuesta Económica,70,60,Escritorios elevables motorizados,2026-03-20,2026-06-05,Activa
+OPP-2026-004,Design Studio,VEND-003,PROD-003,Actualización Suite Monitores Color Grading,Electrónica,64000,4. Negociación Ejecutiva,80,75,Monitores 4K 100% DCI-P3 para coloristas,2026-03-12,2026-05-22,Avanzada
+OPP-2026-005,Logística Norte,VEND-001,PROD-010,Telemetría y Nube para Flota de Carga,Servicios,110000,4. Negociación Ejecutiva,90,85,Monitoreo en tiempo real de rutas y combustible,2026-02-28,2026-06-12,Avanzada
+OPP-2026-006,Grupo Industrial,VEND-004,PROD-012,Contrato Soporte Planta Querétaro 24/7,Servicios,140000,4. Negociación Ejecutiva,90,85,Reducción de paros de línea y monitoreo SCADA,2026-02-15,2026-05-30,Avanzada
+OPP-2026-007,Grupo Industrial,VEND-004,PROD-011,Auditoría BI y Calidad de Procesos,Servicios,88000,3. Propuesta Económica,75,65,Dashboards de OEE y control estadístico,2026-03-22,2026-06-15,Activa
+OPP-2026-008,Retail Moderna,VEND-003,PROD-002,Terminales Laptops para Supervisores de Tienda,Electrónica,74700,2. Calificación Técnica,60,45,Movilidad en piso de ventas y sincronización POS,2026-03-28,2026-06-18,Activa
+OPP-2026-009,Fintech Vanguardia,VEND-002,PROD-001,Equipamiento Ciberseguridad Laptops 16,Electrónica,162500,4. Negociación Ejecutiva,90,85,Chip criptográfico TPM y docking doble monitor,2026-03-01,2026-05-25,Avanzada
+OPP-2026-010,Fintech Vanguardia,VEND-002,PROD-012,Póliza Soporte SOC 2 & PCI-DSS,Servicios,70000,3. Propuesta Económica,80,70,Cumplimiento regulatorio bancario nacional,2026-03-18,2026-06-10,Activa
+OPP-2026-011,BioSalud Labs,VEND-004,PROD-006,Sillas Antiestáticas y Ergonómicas para Lab,Mobiliario,42000,4. Negociación Ejecutiva,85,80,Certificación sala limpia y soporte lumbar,2026-03-10,2026-06-28,Avanzada
+OPP-2026-012,PyME Solutions,VEND-002,PROD-011,Consultoría BI para Reportes Financieros,Servicios,44000,2. Calificación Técnica,55,40,Migración de hojas de cálculo a DuckDB BI,2026-04-02,2026-07-10,En Riesgo

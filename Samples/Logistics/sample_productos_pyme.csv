@@ -1,0 +1,13 @@
+id_producto,producto,categoria,subcategoria,precio_unitario,costo_unitario,volumen_m3_unidad,peso_kg_unidad
+PROD-001,Laptop Pro 16,Electrónica,Cómputo,32500,22000,0.015,2.50
+PROD-002,Laptop Pro 14,Electrónica,Cómputo,24900,17000,0.012,1.80
+PROD-003,Monitor 4K 27",Electrónica,Periféricos,12800,8500,0.080,7.50
+PROD-004,Teclado Mecánico,Electrónica,Periféricos,2600,1400,0.005,1.10
+PROD-005,Auriculares Noise-Cancel,Electrónica,Audio,6800,3900,0.006,0.40
+PROD-006,Silla Ergonómica,Mobiliario,Oficina,4200,2300,0.350,18.00
+PROD-007,Escritorio Elevable,Mobiliario,Oficina,14500,8800,0.450,32.00
+PROD-008,Cajonera Metálica,Mobiliario,Almacenamiento,3100,1750,0.200,15.00
+PROD-009,Lámpara LED Smart,Mobiliario,Iluminación,1950,950,0.020,1.20
+PROD-010,Consultoría Cloud,Servicios,Tecnología Cloud,18000,7200,0.000,0.00
+PROD-011,Auditoría BI,Servicios,Business Intelligence,22000,8800,0.000,0.00
+PROD-012,Soporte Anual,Servicios,Mantenimiento TI,35000,12000,0.000,0.00

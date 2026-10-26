@@ -1,0 +1,28 @@
+id_envio,id_venta,id_almacen_origen,id_cliente,ciudad_origen,ciudad_destino,distancia_km,unidades_transportadas,peso_total_kg,volumen_total_m3,costo_flete_base_mxn,costo_combustible_peajes_mxn,costo_total_logistica_mxn,tiempo_transito_dias,proveedor_logistico,estado_envio,fecha_despacho,fecha_entrega
+ENV-2025-001,VTA-2025-001,ALM-MTY,TechCorp,Monterrey,Monterrey,28,6,15.0,0.090,450,120,570,1,Transportes del Norte Flota,Entregado a Tiempo,2025-07-15,2025-07-16
+ENV-2025-002,VTA-2025-002,ALM-CDMX,PyME Solutions,CDMX,CDMX,34,24,432.0,8.400,2800,450,3250,1,Estafeta Carga Consolidada,Entregado a Tiempo,2025-07-23,2025-07-24
+ENV-2025-003,VTA-2025-003,ALM-GDL,Design Studio,Guadalajara,Guadalajara,22,15,112.5,1.200,850,180,1030,1,DHL Freight Local,Entregado a Tiempo,2025-08-06,2025-08-07
+ENV-2025-006,VTA-2025-006,ALM-MTY,TechCorp,Monterrey,Monterrey,28,24,26.4,0.120,420,110,530,1,Transportes del Norte Flota,Entregado a Tiempo,2025-09-11,2025-09-12
+ENV-2025-007,VTA-2025-007,ALM-CDMX,PyME Solutions,CDMX,CDMX,34,8,256.0,3.600,2200,380,2580,1,Estafeta Carga Consolidada,Entregado a Tiempo,2025-09-19,2025-09-20
+ENV-2025-008,VTA-2025-008,ALM-GDL,Design Studio,Guadalajara,Guadalajara,22,12,4.8,0.072,380,90,470,1,DHL Express Local,Entregado a Tiempo,2025-09-26,2025-09-27
+ENV-2025-009,VTA-2025-009,ALM-MTY,TechCorp,Monterrey,Monterrey,28,7,17.5,0.105,480,130,610,1,Transportes del Norte Flota,Entregado a Tiempo,2025-10-09,2025-10-10
+ENV-2025-010,VTA-2025-010,ALM-CDMX,Fintech Vanguardia,CDMX,CDMX,25,6,10.8,0.072,550,140,690,1,DHL Express Local,Entregado a Tiempo,2025-10-16,2025-10-17
+ENV-2025-011,VTA-2025-011,ALM-GDL,Retail Moderna,Guadalajara,Guadalajara,35,30,540.0,10.500,3400,620,4020,1,Estafeta Carga Consolidada,Entregado a Tiempo,2025-10-25,2025-10-26
+ENV-2025-012,VTA-2025-012,ALM-CDMX,PyME Solutions,CDMX,CDMX,34,16,240.0,3.200,1850,310,2160,1,Transportes Monterrey Bajío,Entregado con Retraso,2025-11-05,2025-11-08
+ENV-2025-014,VTA-2025-014,ALM-MTY,Logística Norte,Monterrey,Monterrey,18,40,48.0,0.800,650,150,800,1,Transportes del Norte Flota,Entregado a Tiempo,2025-11-21,2025-11-22
+ENV-2025-015,VTA-2025-015,ALM-GDL,Design Studio,Guadalajara,Guadalajara,22,18,135.0,1.440,950,210,1160,1,DHL Freight Local,Entregado a Tiempo,2025-12-03,2025-12-04
+ENV-2025-016,VTA-2025-016,ALM-CDMX,BioSalud Labs,CDMX,Puebla,132,18,324.0,6.300,3900,950,4850,2,Castores Paquetería Especial,Entregado a Tiempo,2025-12-15,2025-12-17
+ENV-2026-001,VTA-2026-001,ALM-MTY,TechCorp,Monterrey,Monterrey,28,8,20.0,0.120,520,140,660,1,Transportes del Norte Flota,Entregado a Tiempo,2026-01-16,2026-01-17
+ENV-2026-002,VTA-2026-002,ALM-CDMX,PyME Solutions,CDMX,CDMX,34,20,360.0,7.000,2600,420,3020,1,Estafeta Carga Consolidada,Entregado a Tiempo,2026-01-19,2026-01-20
+ENV-2026-003,VTA-2026-003,ALM-GDL,Design Studio,Guadalajara,Guadalajara,22,16,120.0,1.280,900,190,1090,1,DHL Freight Local,Entregado a Tiempo,2026-01-21,2026-01-22
+ENV-2026-005,VTA-2026-005,ALM-MTY,TechCorp,Monterrey,Monterrey,28,30,33.0,0.150,480,120,600,1,Transportes del Norte Flota,Entregado a Tiempo,2026-02-15,2026-02-16
+ENV-2026-006,VTA-2026-006,ALM-CDMX,PyME Solutions,CDMX,CDMX,34,12,384.0,5.400,2950,480,3430,1,Estafeta Carga Consolidada,Entregado a Tiempo,2026-02-23,2026-02-24
+ENV-2026-008,VTA-2026-008,ALM-GDL,Design Studio,Guadalajara,Guadalajara,22,20,8.0,0.120,440,110,550,1,DHL Express Local,Entregado a Tiempo,2026-03-11,2026-03-12
+ENV-2026-009,VTA-2026-009,ALM-CDMX,Fintech Vanguardia,CDMX,CDMX,25,8,14.4,0.096,620,160,780,1,DHL Express Local,Entregado a Tiempo,2026-03-17,2026-03-18
+ENV-2026-010,VTA-2026-010,ALM-MTY,Logística Norte,Monterrey,Monterrey,18,50,60.0,1.000,750,180,930,1,Transportes del Norte Flota,Entregado a Tiempo,2026-03-26,2026-03-27
+ENV-2026-011,VTA-2026-011,ALM-MTY,TechCorp,Monterrey,Monterrey,28,8,14.4,0.096,560,150,710,1,Transportes del Norte Flota,Entregado a Tiempo,2026-04-06,2026-04-07
+ENV-2026-013,VTA-2026-013,ALM-CDMX,PyME Solutions,CDMX,CDMX,34,22,330.0,4.400,2400,390,2790,1,Transportes Monterrey Bajío,Entregado a Tiempo,2026-04-21,2026-04-22
+ENV-2026-014,VTA-2026-014,ALM-MTY,TechCorp,Monterrey,Monterrey,28,10,25.0,0.150,650,160,810,1,Transportes del Norte Flota,Entregado a Tiempo,2026-05-03,2026-05-04
+ENV-2026-015,VTA-2026-015,ALM-GDL,Retail Moderna,Guadalajara,Guadalajara,35,14,448.0,6.300,3200,580,3780,1,Estafeta Carga Consolidada,Entregado con Retraso,2026-05-12,2026-05-15
+ENV-2026-016,VTA-2026-016,ALM-CDMX,Fintech Vanguardia,CDMX,CDMX,25,20,150.0,1.600,1200,260,1460,1,DHL Freight Local,Entregado a Tiempo,2026-05-20,2026-05-21
+ENV-2026-018,VTA-2026-018,ALM-GDL,Retail Moderna,Guadalajara,Guadalajara,35,35,38.5,0.175,520,130,650,1,DHL Express Local,Entregado a Tiempo,2026-06-16,2026-06-17
