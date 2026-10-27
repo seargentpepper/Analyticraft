@@ -6,6 +6,7 @@ export interface ProjectSaveResult {
   projectName: string;
   backupCreated?: string | null;
   method: "directory" | "download";
+  errors?: string[];
 }
 
 export interface ProjectLoadResult {
@@ -180,24 +181,27 @@ export async function saveProjectFolder(
       await projectWritable.close();
 
       // Write each registered CSV in /data
+      const csvSaveErrors: string[] = [];
       for (const item of sourcesList) {
         try {
           const csvFileHandle = await dataSubDir.getFileHandle(item.fileName, { create: true });
           const csvWritable = await csvFileHandle.createWritable();
           await csvWritable.write(item.content);
           await csvWritable.close();
-        } catch (csvErr) {
+        } catch (csvErr: any) {
+          csvSaveErrors.push(`${item.fileName}: ${csvErr.message || "error al escribir"}`);
           console.warn(`Error al guardar CSV '${item.fileName}' en /data:`, csvErr);
         }
       }
 
       setSavedProjectDirectoryName(dirHandle.name || cleanName);
       return {
-        success: true,
+        success: csvSaveErrors.length === 0,
         dirHandle,
         projectName: cleanName,
         backupCreated,
         method: "directory",
+        errors: csvSaveErrors.length > 0 ? csvSaveErrors : undefined,
       };
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -301,8 +305,24 @@ export async function openProjectSingleFile(
   file: File
 ): Promise<ProjectLoadResult | null> {
   const text = await file.text();
-  const project = JSON.parse(text) as AnalyticraftProject;
-  const csvFiles = project.sources || [];
+  let project: AnalyticraftProject;
+  try {
+    project = JSON.parse(text) as AnalyticraftProject;
+  } catch (parseErr: any) {
+    throw new Error(`El archivo seleccionado no es un JSON válido: ${parseErr.message}`);
+  }
+
+  if (!project || typeof project !== "object" || !project.name) {
+    throw new Error("El archivo no contiene una definición válida de proyecto Analyticraft (propiedad 'name' requerida).");
+  }
+
+  // Sanitize arrays if missing
+  project.charts = Array.isArray(project.charts) ? project.charts : [];
+  project.filters = Array.isArray(project.filters) ? project.filters : [];
+  project.relations = Array.isArray(project.relations) ? project.relations : [];
+  project.sources = Array.isArray(project.sources) ? project.sources : [];
+
+  const csvFiles = project.sources;
   return {
     project,
     csvFiles,

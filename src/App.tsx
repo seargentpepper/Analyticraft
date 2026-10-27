@@ -4,6 +4,7 @@ import {
   BarChart3,
   Database,
   Plus,
+  Link2,
   Share2,
   FileSpreadsheet,
   BarChart2,
@@ -58,9 +59,11 @@ import {
   setSavedProjectDirectoryName,
 } from "./lib/projectStorage";
 import { SaveProjectModal } from "./components/SaveProjectModal";
+import { buildChartSQL } from "./lib/queryBuilder";
 import { OpenProjectModal } from "./components/OpenProjectModal";
 import {
   ChartConfig,
+  CardLayout,
   ChartType,
   GlobalFilter,
   TableRelation,
@@ -72,10 +75,12 @@ import {
   DraggedFieldPayload,
 } from "./types/dashboard";
 import { ChartCard } from "./components/ChartCard";
+import { FloatingCard } from "./components/FloatingCard";
 import { VisualizationsPanel } from "./components/VisualizationsPanel";
 import { FieldsPanel } from "./components/FieldsPanel";
 import { ModelView } from "./components/ModelView";
 import { generateStandaloneHTML } from "./lib/exporter";
+import { ensureLayouts, canvasHeight, canvasWidthNeeded } from "./lib/canvasLayout";
 import { THEME_GROUPS, THEME_LIST, getTheme } from "./lib/themes";
 
 export function App() {
@@ -140,6 +145,7 @@ export function App() {
   // Hidden file input references for Hot Swap and Project Open
   const projectInputRef = useRef<HTMLInputElement | null>(null);
   const hotSwapInputRef = useRef<HTMLInputElement | null>(null);
+  const canvasAreaRef = useRef<HTMLElement | null>(null);
   const [hotSwapTargetTable, setHotSwapTargetTable] = useState<string | null>(null);
 
   const showNotification = (msg: string) => {
@@ -185,6 +191,7 @@ export function App() {
 
   // Synchronize rows for Data View with introspection (COUNT) and paginated LIMIT/OFFSET
   useEffect(() => {
+    let isCurrent = true;
     if (activeView === "data") {
       const target = dataViewTable || tables[0]?.name || "";
       if (target) {
@@ -194,23 +201,51 @@ export function App() {
         }
         setDataViewLoading(true);
         const offset = (dataViewPage - 1) * dataViewPageSize;
+        const currentTableObj = tables.find((t) => t.name === target);
+        const firstCol = currentTableObj?.columns[0]?.name;
+        const orderClause = firstCol ? `ORDER BY "${firstCol.replace(/"/g, '""')}" ASC` : "";
+
         Promise.all([
-          executeQuery(`SELECT COUNT(*) AS total FROM "${target}"`),
-          executeQuery(`SELECT * FROM "${target}" LIMIT ${dataViewPageSize} OFFSET ${offset}`),
+          executeQuery(`SELECT COUNT(*) AS total FROM "${target.replace(/"/g, '""')}"`),
+          executeQuery(`SELECT * FROM "${target.replace(/"/g, '""')}" ${orderClause} LIMIT ${dataViewPageSize} OFFSET ${offset}`),
         ])
           .then(([countRes, rows]) => {
+            if (!isCurrent) return;
             const countVal = countRes[0]?.total !== undefined ? Number(countRes[0].total) : rows.length;
             setDataViewTotalRows(countVal);
             setDataViewRows(rows);
           })
-          .catch((err) => console.error("Error al cargar registros en Data View:", err))
-          .finally(() => setDataViewLoading(false));
+          .catch((err) => {
+            if (!isCurrent) return;
+            console.error("Error al cargar registros en Data View:", err);
+          })
+          .finally(() => {
+            if (isCurrent) setDataViewLoading(false);
+          });
       } else {
         setDataViewRows([]);
         setDataViewTotalRows(0);
       }
     }
+    return () => {
+      isCurrent = false;
+    };
   }, [activeView, dataViewTable, dataViewPage, tables, refreshVersion]);
+
+  // Lienzo libre: toda tarjeta debe tener coordenadas. Migra proyectos antiguos (sin `layout`)
+  // y ubica tarjetas nuevas en el primer hueco libre. No marca el proyecto como modificado.
+  useEffect(() => {
+    if (charts.every((c) => c.layout)) return;
+    const width = canvasAreaRef.current?.clientWidth || 1000;
+    setCharts((prev) => ensureLayouts(prev, width));
+  }, [charts, activeView]);
+
+  const handleCardLayoutCommit = (chartId: string, layout: CardLayout) => {
+    setIsDirty(true);
+    setCharts((prev) => prev.map((c) => (c.id === chartId ? { ...c, layout } : c)));
+  };
+
+  const displayCharts = ensureLayouts(charts, canvasAreaRef.current?.clientWidth || 1000);
 
   const handleSwitchView = (newView: AppViewMode) => {
     setActiveView(newView);
@@ -551,6 +586,12 @@ export function App() {
 
   // 4a. Abrir Carpeta de Proyecto estructurada (Fase 8.5)
   const handleOpenProjectDirectory = async () => {
+    if (isDirty) {
+      const confirmDiscard = window.confirm(
+        "Tienes cambios sin guardar en el proyecto actual. Si continúas, se perderán las modificaciones no guardadas. ¿Deseas abrir otro proyecto de todos modos?"
+      );
+      if (!confirmDiscard) return;
+    }
     if (isFileSystemAccessSupported()) {
       try {
         const dirHandle = await (window as any).showDirectoryPicker({
@@ -621,22 +662,30 @@ export function App() {
     }
   };
 
-  // 4b. Cargar proyecto desde un archivo (.analyticraft o .json)
   const loadProjectFromFile = async (file: File) => {
+    if (isDirty) {
+      const confirmDiscard = window.confirm(
+        "Tienes cambios sin guardar en el proyecto actual. Si continúas, se perderán las modificaciones no guardadas. ¿Deseas abrir otro proyecto de todos modos?"
+      );
+      if (!confirmDiscard) return;
+    }
     setIsUploading(true);
     try {
       const res = await openProjectSingleFile(file);
       if (!res) return;
 
+      await resetDuckDBSession();
+      const loadedTables: TableInfo[] = [];
       if (res.csvFiles.length > 0) {
-        await resetDuckDBSession();
-        const loadedTables: TableInfo[] = [];
         for (const csv of res.csvFiles) {
           const tInfo = await registerCSVContent(csv.content, csv.tableName, csv.fileName);
           loadedTables.push(tInfo);
         }
-        setTables(loadedTables);
       }
+      setTables(loadedTables);
+      setChartDataStore({});
+      setHistory([]);
+      setFuture([]);
 
       const pName = res.project.name.endsWith(".analyticraft")
         ? res.project.name
@@ -738,6 +787,7 @@ export function App() {
   };
 
   const updateGlobalFilter = (id: string, updates: Partial<GlobalFilter>) => {
+    setIsDirty(true);
     setGlobalFilters((prev) =>
       prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
     );
@@ -882,8 +932,6 @@ export function App() {
     if (!existing) return;
 
     try {
-      await dropVirtualRelationView(existing.name);
-
       const newViewName = `view_${newSourceTable}_${newSourceCol}_${newTargetTable}_${newTargetCol}`.replace(/[^a-zA-Z0-9_]/g, "_");
       await createVirtualRelationView(
         newViewName,
@@ -893,6 +941,10 @@ export function App() {
         newTargetCol,
         newJoinType
       );
+
+      if (existing.name !== newViewName) {
+        await dropVirtualRelationView(existing.name);
+      }
 
       const updated: TableRelation = {
         ...existing,
@@ -1033,6 +1085,7 @@ export function App() {
       id: newId,
       title: `${clipboard.title} (Copia)`,
       showDescription: clipboard.showDescription !== false,
+      layout: undefined, // se ubica en el primer hueco libre del lienzo
     };
     setCharts((prev) => [...prev, pasted]);
     setSelectedChartId(newId);
@@ -1054,6 +1107,7 @@ export function App() {
       id: newId,
       title: `${target.title} (Duplicado)`,
       showDescription: target.showDescription !== false,
+      layout: undefined, // se ubica en el primer hueco libre del lienzo
     };
     setCharts((prev) => [...prev, duplicated]);
     setSelectedChartId(newId);
@@ -1144,6 +1198,7 @@ export function App() {
         break;
 
       case "SET_THEME":
+        setIsDirty(true);
         setActiveTheme(action.theme);
         showNotification(`Tema '${getTheme(action.theme).label}' aplicado`);
         break;
@@ -1186,19 +1241,37 @@ export function App() {
   };
 
   // 8. Export Standalone HTML
-  const handleExportHTML = () => {
+  const handleExportHTML = async () => {
     if (charts.length === 0) {
       alert("Agrega al menos un gráfico para exportar el reporte.");
       return;
     }
 
+    const cleanProjectName = projectName.replace(/\.analyticraft$/i, "");
+
+    // Ensure all charts have their data evaluated (query if missing in store)
+    const exportChartsData = await Promise.all(
+      charts.map(async (cfg) => {
+        let rows = chartDataStore[cfg.id];
+        if (!rows || rows.length === 0) {
+          try {
+            const sql = buildChartSQL({ config: cfg, globalFilters });
+            rows = await executeQuery(sql);
+          } catch {
+            rows = [];
+          }
+        }
+        return {
+          config: cfg,
+          data: rows || [],
+        };
+      })
+    );
+
     const exportPayload = {
-      projectName: "Analyticraft Dashboard",
+      projectName: cleanProjectName || "Analyticraft Dashboard",
       theme: activeTheme,
-      charts: charts.map((cfg) => ({
-        config: cfg,
-        data: chartDataStore[cfg.id] || [],
-      })),
+      charts: exportChartsData,
     };
 
     const htmlContent = generateStandaloneHTML(exportPayload);
@@ -1206,10 +1279,10 @@ export function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `Analyticraft_Report_${new Date().toISOString().slice(0, 10)}.html`;
+    link.download = `${cleanProjectName || "Analyticraft_Report"}_${new Date().toISOString().slice(0, 10)}.html`;
     link.click();
     URL.revokeObjectURL(url);
-    showNotification("Reporte HTML exportado exitosamente");
+    showNotification(`Reporte HTML '${cleanProjectName}' exportado exitosamente`);
   };
 
   const selectedChart = charts.find((c) => c.id === selectedChartId);
@@ -1218,6 +1291,7 @@ export function App() {
 
   const updateSelectedChart = (updates: Partial<ChartConfig>) => {
     if (!selectedChartId) return;
+    setIsDirty(true);
     setCharts((prev) =>
       prev.map((c) => (c.id === selectedChartId ? { ...c, ...updates } : c))
     );
@@ -1881,6 +1955,27 @@ export function App() {
                 </div>
                 <div className="ribbon-group-title">Estructura y Esquema</div>
               </div>
+
+              <div className="ribbon-divider" />
+
+              <div className="ribbon-group">
+                <div className="ribbon-group-controls">
+                  <button
+                    className="ribbon-btn-large"
+                    onClick={() => dispatchAction({ type: "OPEN_JOIN_MODAL" })}
+                    disabled={tables.length < 2}
+                    title={
+                      tables.length < 2
+                        ? "Carga al menos 2 tablas CSV para crear una relación"
+                        : "Abrir el asistente para crear una relación (JOIN) entre dos tablas"
+                    }
+                  >
+                    <Link2 size={18} strokeWidth={1.5} color="#4ec9b0" />
+                    <span>Nueva Relación</span>
+                  </button>
+                </div>
+                <div className="ribbon-group-title">Relaciones</div>
+              </div>
             </>
           )}
 
@@ -2192,6 +2287,7 @@ export function App() {
       <div className="workspace-body">
         {/* Center Canvas: Interactive Visualizations Grid */}
         <main
+          ref={canvasAreaRef}
           className="canvas-area"
           onDragOver={(e) => {
             e.preventDefault();
@@ -2254,10 +2350,26 @@ export function App() {
               </label>
             </div>
           ) : (
-            <div className="charts-grid">
-              {charts.map((cfg) => (
-                <ChartCard
+            <div
+              className="free-canvas"
+              style={{
+                height: canvasHeight(displayCharts),
+                minWidth: canvasWidthNeeded(displayCharts) || undefined,
+              }}
+            >
+              {displayCharts.map((cfg, idx) => (
+                <FloatingCard
                   key={cfg.id}
+                  layout={cfg.layout as CardLayout}
+                  zIndex={cfg.id === selectedChartId ? 50 : idx + 1}
+                  isSelected={cfg.id === selectedChartId}
+                  onInteractionStart={() => {
+                    recordSnapshot();
+                    setSelectedChartId(cfg.id);
+                  }}
+                  onCommit={(layout) => handleCardLayoutCommit(cfg.id, layout)}
+                >
+                <ChartCard
                   config={cfg}
                   globalFilters={globalFilters}
                   theme={activeTheme}
@@ -2265,6 +2377,8 @@ export function App() {
                   isSelected={cfg.id === selectedChartId}
                   onSelect={() => setSelectedChartId(cfg.id)}
                   onDelete={() => {
+                    recordSnapshot();
+                    setIsDirty(true);
                     setCharts((prev) => prev.filter((c) => c.id !== cfg.id));
                     if (selectedChartId === cfg.id) setSelectedChartId(null);
                   }}
@@ -2272,6 +2386,8 @@ export function App() {
                     setChartDataStore((prev) => ({ ...prev, [cfg.id]: rows }));
                   }}
                   onDropField={(payload) => {
+                    recordSnapshot();
+                    setIsDirty(true);
                     setSelectedChartId(cfg.id);
                     if (payload.dataType === "number") {
                       setCharts((prev) =>
@@ -2304,6 +2420,7 @@ export function App() {
                   }}
                   onSlicerFilterChange={handleSlicerFilterChange}
                 />
+                </FloatingCard>
               ))}
             </div>
           )}
@@ -2542,7 +2659,6 @@ export function App() {
       onAddRelation={handleAddRelationDirectly}
       onUpdateRelation={handleUpdateRelation}
       onDeleteRelation={handleDeleteRelation}
-      onOpenJoinModal={openJoinModal}
       showNotification={showNotification}
       savedPositions={modelLayout}
       onSavePositions={(newLayout) => {

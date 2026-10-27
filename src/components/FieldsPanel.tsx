@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Layers,
   ChevronDown,
@@ -43,6 +44,16 @@ export const FieldsPanel: React.FC<FieldsPanelProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedTables, setExpandedTables] = useState<Record<string, boolean>>({});
+  const [showRelations, setShowRelations] = useState(false);
+
+  useEffect(() => {
+    if (!showRelations) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowRelations(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showRelations]);
 
   const toggleTable = (name: string) => {
     setExpandedTables((prev) => ({
@@ -256,40 +267,23 @@ export const FieldsPanel: React.FC<FieldsPanelProps> = ({
               );
             })}
 
-            {/* Virtual Relations Section */}
-            {relations.length > 0 && (
-              <div className="relations-accordion-section">
-                <div className="relations-header">
-                  <Link2 size={12} color="#cca700" />
-                  <span>Vistas Relacionales (JOINs)</span>
-                </div>
-                <div className="relations-list">
-                  {relations.map((rel) => (
-                    <div key={rel.id} className="relation-item-chip">
-                      <div className="relation-item-info">
-                        <span className="relation-name">{rel.name}</span>
-                        <span className="relation-type-badge">{rel.joinType}</span>
-                      </div>
-                      {onDeleteRelation && (
-                        <button
-                          className="btn-delete-relation"
-                          onClick={() => onDeleteRelation(rel)}
-                          title="Eliminar esta vista relacional de DuckDB"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
 
-      {/* Footer with CSV Quick Loader */}
+      {/* Footer: acceso a JOINs (botón rectangular) + carga rápida de CSV */}
       <div className="fields-panel-footer">
+        <button
+          type="button"
+          className={`btn-relations-toggle ${showRelations ? "active" : ""}`}
+          onClick={() => setShowRelations((v) => !v)}
+          title="Ver y administrar las vistas relacionales (JOINs) del proyecto"
+          aria-expanded={showRelations}
+        >
+          <Link2 size={12} color="#cca700" />
+          <span>Vistas relacionales (JOINs)</span>
+          <span className="relations-count-chip">{relations.length}</span>
+        </button>
         <label className="btn-upload-bottom" title="Cargar archivo CSV adicional en DuckDB">
           <input
             type="file"
@@ -302,6 +296,61 @@ export const FieldsPanel: React.FC<FieldsPanelProps> = ({
           <span>Obtener Otro CSV</span>
         </label>
       </div>
+
+      {showRelations &&
+        createPortal(
+          <div
+            className="relations-float-window"
+            role="dialog"
+            aria-label="Vistas relacionales (JOINs)"
+          >
+            <div className="relations-float-header">
+              <div className="relations-float-title">
+                <Link2 size={13} color="#cca700" />
+                <span>Vistas Relacionales (JOINs)</span>
+                <span className="relations-count-chip">{relations.length}</span>
+              </div>
+              <button
+                type="button"
+                className="relations-float-close"
+                onClick={() => setShowRelations(false)}
+                title="Cerrar (Esc)"
+                aria-label="Cerrar ventana de JOINs"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <div className="relations-float-body">
+              {relations.length === 0 ? (
+                <p className="relations-float-empty">
+                  Aún no hay relaciones. Créalas desde la pestaña Modelado → Nueva Relación o arrastrando
+                  columnas en la Vista de Modelo.
+                </p>
+              ) : (
+                relations.map((rel) => (
+                  <div key={rel.id} className="relation-item-chip">
+                    <div className="relation-item-info">
+                      <span className="relation-name" title={rel.name}>
+                        {rel.name}
+                      </span>
+                      <span className="relation-type-badge">{rel.joinType}</span>
+                    </div>
+                    {onDeleteRelation && (
+                      <button
+                        className="btn-delete-relation"
+                        onClick={() => onDeleteRelation(rel)}
+                        title="Eliminar esta vista relacional de DuckDB"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </aside>
   );
 };

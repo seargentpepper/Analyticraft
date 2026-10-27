@@ -1,7 +1,7 @@
 {
   "name": "analyticraft",
   "private": true,
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "Minimalist, local-first Business Intelligence desktop tool for SMEs",
   "type": "module",
   "scripts": {
@@ -15,11 +15,9 @@
     "@duckdb/duckdb-wasm": "^1.33.1-dev57.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "@types/papaparse": "^5.5.2",
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.6",
     "lucide-react": "^1.61.0",
-    "papaparse": "^5.7.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

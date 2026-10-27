@@ -39,7 +39,6 @@ Analyticraft permite a analistas, contadores y directores procesar, modelar y vi
 | Motor Analítico | DuckDB-WASM | Procesamiento columnar vectorizado en memoria y ejecución de consultas SQL analíticas |
 | Frontend Core | React 19 + TypeScript + Vite 8 | Interfaz reactiva desacoplada, tipado estricto y compilación rápida |
 | Motor de Visualización | Apache ECharts 6 + Lucide Icons | Renderizado interactivo de alto rendimiento en Canvas y sistema iconográfico |
-| Parser de Archivos | PapaParse | Análisis y procesamiento preliminar de fuentes tabulares delimitadas |
 | Sistema de Diseño | CSS Workbench Industrial | Paleta neutra oscura (`#1e1e1e` a `#2d2d2d`) con tokens de diseño dedicados |
 
 ---

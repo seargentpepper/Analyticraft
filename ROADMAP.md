@@ -32,21 +32,25 @@ Este documento traza la hoja de ruta activa y los próximos desarrollos técnico
 ### Fase 8.4: Saneamiento de Deuda Técnica, Exactitud Analítica y Ciclo de Vida (Meta Inmediata: v0.8.4)
 > *Detalle e iteraciones técnicas desglosadas en el [Plan de Intervención v0.8.4](./PLAN_INTERVENCION_v0_8_4.md).*
 - 🖥️ **UI / Frontend:**
-  - [ ] **Reactividad Universal del Indicador de Cambios (`isDirty`):** Cualquier cambio en configuración visual, temas, filtros o Drag & Drop enciende de inmediato el indicador de guardado pendiente `*` (A-01).
-  - [ ] **Diálogo Protector de Carga de Proyectos:** Solicitud de confirmación ante cambios pendientes al abrir archivos o carpetas, con reseteo total de estados visuales y selección (A-02).
-  - [ ] **Sincronización Reactiva de Modales y Vistas:** Forzado de props sincronizadas en `SaveProjectModal` (nombre) y `ModelView` (posiciones entre proyectos) (M-04, M-05).
-  - [ ] **Buscador en Vivo del Segmentador:** Búsqueda reactiva en DuckDB sin el límite ciego de 50 registros iniciales (M-06).
-  - [ ] **Vistas Relacionales en Catálogo Visual:** Las vistas `view_s_t` se muestran en el panel `Campos` y drop-zones de visuales (A-07).
+  - [x] **Reactividad Universal del Indicador de Cambios (`isDirty`):** Cualquier cambio en configuración visual, temas, filtros o Drag & Drop enciende de inmediato el indicador de guardado pendiente `•` (A-01).
+  - [x] **Diálogo Protector de Carga de Proyectos:** Solicitud de confirmación ante cambios pendientes al abrir archivos o carpetas, con reseteo total de estados visuales y selección (A-02).
+  - [x] **Sincronización Reactiva de Modales y Vistas:** Forzado de props sincronizadas en `SaveProjectModal` (nombre) y `ModelView` (posiciones entre proyectos) (M-04, M-05).
+  - [x] **Buscador en Vivo del Segmentador:** Búsqueda reactiva en DuckDB sin el límite ciego de 50 registros iniciales (M-06).
+  - [x] **Aislamiento Limpio de Vistas Relacionales:** Desacopladas de la lista de tablas base para no contaminar el panel. Se accede a ellas mediante botón rectangular al pie del panel con ventana flotante responsive y tecla de cierre Esc (A-07).
+  - [x] **Lienzo Libre con Coordenadas Persistentes:** Tarjetas anidables y flotantes con arrastre y redimensionado libre (`{ x, y, w, h }`), ajuste magnético a cuadrícula de 10px y persistencia en guardado/apertura de proyectos.
+  - [x] **Doomscroll sin Recortes en Panel Campos:** Contenedor de scroll infinito (`min-height: 0`, `flex-shrink: 0`) que impide que las tarjetas o columnas queden truncadas al expandir múltiples tablas.
+  - [x] **Depuración de Barra en Vista de Modelo (Principios Gestalt):** Eliminados botones redundantes ("Exportar Síntesis (.md)", "Compacto/Detallado", "Nueva Relación"). Botones restantes estandarizados a 28px de altura y agrupados por proximidad y región común (Zoom, Disposición, Asistentes).
+  - [x] **Reubicación Canónica de "Nueva Relación":** Trasladada a la cinta superior dentro de la pestaña `Modelado` en su propio grupo `Relaciones`.
 - ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Exactitud Numérica en Filtros SQL:** Eliminación de conversiones a `VARCHAR` en operadores `>` y `<`; comparaciones numéricas tipadas estrictas (A-03).
-  - [ ] **Orden Cronológico en Series Temporales:** Gráficos de líneas y áreas ordenados por dimensión ascendente (`ORDER BY dim ASC`), reservando `ORDER BY metric DESC` para categorías (M-01).
-  - [ ] **Preservación Segura de Enteros Grandes (`bigint`):** Soporte seguro para valores superiores a `MAX_SAFE_INTEGER` (M-02).
-  - [ ] **Hot Swap y Modificación de Relaciones Atómicas:** Reemplazo transaccional de tablas y vistas usando tablas temporales antes de descartar la versión previa (A-06, M-07).
-  - [ ] **Exportación Confiable y Offline:** Espera activa a finalización de queries antes de exportar HTML, título real de proyecto y recursos embebidos sin dependencia de CDN (A-04, D-04).
-  - [ ] **Concurrencia y Orden Determinista en Vista de Datos:** Token de cancelación y orden determinista en `SELECT * ... LIMIT ... OFFSET ...` (M-08, M-09).
+  - [x] **Exactitud Numérica en Filtros SQL:** Eliminación de conversiones a `VARCHAR` en operadores `>` y `<`; comparaciones numéricas tipadas estrictas con `TRY_CAST(... AS DOUBLE)` (A-03).
+  - [x] **Orden Cronológico en Series Temporales:** Gráficos de líneas y áreas ordenados por dimensión ascendente (`ORDER BY dim ASC`), reservando `ORDER BY metric DESC` para categorías (M-01).
+  - [x] **Preservación Segura de Enteros Grandes (`bigint`):** Soporte seguro para valores superiores a `MAX_SAFE_INTEGER` con helper `safeNumericOrBigInt` (M-02).
+  - [x] **Hot Swap y Modificación de Relaciones Atómicas:** Reemplazo transaccional de tablas y vistas usando tablas temporales antes de descartar la versión previa (A-06, M-07).
+  - [x] **Exportación Confiable y Offline:** Espera activa a finalización de queries antes de exportar HTML, título real de proyecto y recursos embebidos sin dependencia de CDN (A-04, D-04).
+  - [x] **Concurrencia y Orden Determinista en Vista de Datos:** Token de cancelación `isCurrent` y orden determinista en `SELECT * ... ORDER BY ... LIMIT ... OFFSET ...` (M-08, M-09).
 - 🧪 **Calidad y Testing:**
-  - [ ] **Expansión de Suite Vitest:** Más de 25 pruebas automáticas cubriendo filtros SQL, orden cronológico, ciclo de vida y sanitización (D-01).
-  - [ ] **Depuración de Dependencias:** Desinstalación de `papaparse` del `package.json` y configuración de CSP en `tauri.conf.json` (D-06, D-07).
+  - [x] **Expansión de Suite Vitest:** 30 pruebas automáticas cubriendo filtros SQL, orden cronológico, ciclo de vida, sanitización y geometría de lienzo libre (`tests/canvasLayout.test.ts`) (D-01).
+  - [x] **Depuración de Dependencias:** Desinstalación de `papaparse` del `package.json` y configuración de CSP en `tauri.conf.json` (D-06, D-07).
 
 ---
 

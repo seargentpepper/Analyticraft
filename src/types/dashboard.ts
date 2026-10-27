@@ -44,6 +44,14 @@ export interface LocalFilter {
   enabled: boolean;
 }
 
+/** Posición y tamaño (px) de una tarjeta en el lienzo libre del Informe. */
+export interface CardLayout {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export interface ChartConfig {
   id: string;
   title: string;
@@ -58,6 +66,7 @@ export interface ChartConfig {
   filterCol?: string;
   filterVal?: string;
   localFilters?: LocalFilter[];
+  layout?: CardLayout; // Coordenadas en el lienzo libre (persistidas al guardar)
 }
 
 export interface DraggedFieldPayload {

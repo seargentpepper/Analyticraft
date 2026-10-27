@@ -154,9 +154,13 @@ export function generateStandaloneHTML({
         const box = document.createElement("div");
         box.className = "chart-box" + (cfg.type === "rings" ? " rings" : "");
         body.appendChild(box);
-        const chart = echarts.init(box, null, { renderer: "canvas" });
-        chart.setOption(item.option);
-        window.addEventListener("resize", () => chart.resize());
+        if (typeof window.echarts !== "undefined") {
+          const chart = echarts.init(box, null, { renderer: "canvas" });
+          chart.setOption(item.option);
+          window.addEventListener("resize", () => chart.resize());
+        } else {
+          box.innerHTML = '<div style="display:flex;height:100%;align-items:center;justify-content:center;color:#94a3b8;font-size:0.85rem;">[Modo sin conexión: librería gráfica no precargada]</div>';
+        }
 
         if (item.legend && item.legend.length) {
           const legend = document.createElement("div");

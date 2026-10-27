@@ -3,7 +3,6 @@ import {
   Database,
   Link2,
   Trash2,
-  Plus,
   ZoomIn,
   ZoomOut,
   Maximize2,
@@ -18,14 +17,11 @@ import {
   X,
   HelpCircle,
   LayoutGrid,
-  Minimize2,
   ChevronDown,
   ChevronUp,
   ChevronRight,
   ChevronsUpDown,
-  Eye,
   BookOpen,
-  FileDown,
 } from "lucide-react";
 import { TableInfo } from "../lib/duckdb";
 import { TableRelation, ChartConfig, GlobalFilter } from "../types/dashboard";
@@ -56,7 +52,6 @@ interface ModelViewProps {
     newJoinType: "LEFT" | "INNER"
   ) => Promise<void>;
   onDeleteRelation: (relation: TableRelation) => Promise<void>;
-  onOpenJoinModal: () => void;
   showNotification: (msg: string) => void;
   savedPositions?: Record<string, NodePosition>;
   onSavePositions?: (positions: Record<string, NodePosition>) => void;
@@ -84,7 +79,6 @@ export const ModelView: React.FC<ModelViewProps> = ({
   onAddRelation,
   onUpdateRelation,
   onDeleteRelation,
-  onOpenJoinModal,
   showNotification,
   savedPositions,
   onSavePositions,
@@ -94,6 +88,10 @@ export const ModelView: React.FC<ModelViewProps> = ({
 }) => {
   const [positions, setPositions] = useState<Record<string, NodePosition>>(savedPositions || {});
   const [zoom, setZoom] = useState<number>(1);
+
+  useEffect(() => {
+    setPositions(savedPositions || {});
+  }, [savedPositions]);
 
   const handleExportSynthesis = async () => {
     try {
@@ -134,8 +132,9 @@ export const ModelView: React.FC<ModelViewProps> = ({
 
   const [selectedRelationId, setSelectedRelationId] = useState<string | null>(null);
 
-  // Table view modes: Compact mode, Individual table collapse, and Table focus
-  const [isCompactMode, setIsCompactMode] = useState<boolean>(false);
+  // Table view modes: el modo compacto se retiró de la barra (la vista siempre es detallada);
+  // se conservan los colapsos individuales, el colapso global y el enfoque por tabla.
+  const isCompactMode = false;
   const [expandedTableNames, setExpandedTableNames] = useState<Set<string>>(new Set());
   const [collapsedTableNames, setCollapsedTableNames] = useState<Set<string>>(new Set());
   const [focusedTable, setFocusedTable] = useState<string | null>(null);
@@ -819,130 +818,93 @@ export const ModelView: React.FC<ModelViewProps> = ({
         </div>
 
         <div className="model-toolbar-actions">
-          {/* Explain Model Button for Newbies */}
-          <button
-            className="model-action-btn explain-btn"
-            onClick={() => setShowExplanationModal(true)}
-            title="Aprende cómo interactúan tus tablas: Explicación didáctica de dimensiones, hechos y relaciones (Sin tecnicismos)"
-          >
-            <BookOpen size={13} />
-            <span>Explicar Modelo</span>
-          </button>
-
-          {/* Export Model Synthesis (.md) for External LLM */}
-          <button
-            className="model-action-btn secondary"
-            onClick={handleExportSynthesis}
-            title="Descargar síntesis estructurada del modelo en Markdown (.md) y copiar al portapapeles para consultar a un LLM externo (ChatGPT, Claude, etc.)"
-          >
-            <FileDown size={13} color="#4ec9b0" />
-            <span>Exportar Síntesis (.md)</span>
-          </button>
-
-          {/* Zoom & Fit controls */}
-          <div className="model-zoom-controls">
+          {/* Grupo 1 · Vista: zoom y ajuste (ley de proximidad / región común) */}
+          <div className="model-btn-group" role="group" aria-label="Zoom del diagrama">
             <button
-              className="model-tool-btn"
+              className="model-btn icon-only"
               onClick={() => setZoom((z) => Math.max(0.4, Math.round((z - 0.1) * 10) / 10))}
               title="Alejar (Zoom Out)"
             >
               <ZoomOut size={13} />
             </button>
-            <span className="model-zoom-level">{Math.round(zoom * 100)}%</span>
+            <span className="model-btn model-zoom-level" aria-live="polite">
+              {Math.round(zoom * 100)}%
+            </span>
             <button
-              className="model-tool-btn"
+              className="model-btn icon-only"
               onClick={() => setZoom((z) => Math.min(1.6, Math.round((z + 0.1) * 10) / 10))}
               title="Acercar (Zoom In)"
             >
               <ZoomIn size={13} />
             </button>
             <button
-              className="model-tool-btn"
+              className="model-btn icon-only"
               onClick={() => handleFitToScreen()}
               title="Ajustar todas las tablas al lienzo (Fit to Screen)"
             >
-              <Maximize2 size={12} />
+              <Maximize2 size={13} />
             </button>
           </div>
 
-          {/* Clean & Organize Layout Button (Prominent) */}
-          <button
-            className="model-action-btn clean-btn"
-            onClick={handleCleanAndOrganizeLayout}
-            title="Limpiar y Organizar Vista: Distribuye automáticamente todas las tablas en una cuadrícula multinivel balanceada sin solapamientos"
-          >
-            <LayoutGrid size={13} />
-            <span>Organizar Vista</span>
-          </button>
+          {/* Grupo 2 · Disposición de tablas */}
+          <div className="model-btn-group" role="group" aria-label="Disposición de tablas">
+            <button
+              className="model-btn"
+              onClick={handleCleanAndOrganizeLayout}
+              title="Limpiar y Organizar Vista: Distribuye automáticamente todas las tablas en una cuadrícula multinivel balanceada sin solapamientos"
+            >
+              <LayoutGrid size={13} />
+              <span>Organizar</span>
+            </button>
+            <button
+              className="model-btn"
+              onClick={handleStarLayout}
+              title="Distribuir radialmente en órbitas concéntricas sin solapamiento"
+            >
+              <Sparkles size={13} />
+              <span>Estrella</span>
+            </button>
+            <button
+              className="model-btn"
+              onClick={handleCascadeLayout}
+              title="Distribuir en cascada multinivel: Dimensiones arriba, Hechos abajo"
+            >
+              <GitBranch size={13} />
+              <span>Cascada</span>
+            </button>
+            <button
+              className="model-btn"
+              onClick={handleToggleAllCollapsed}
+              title={
+                collapsedTableNames.size === tables.length
+                  ? "Expandir todas las tablas para ver sus columnas"
+                  : "Colapsar todas las tablas a solo cabeceras"
+              }
+            >
+              <ChevronsUpDown size={13} />
+              <span>{collapsedTableNames.size === tables.length ? "Expandir" : "Colapsar"}</span>
+            </button>
+          </div>
 
-          {/* Toggle All Tables Collapsed */}
-          <button
-            className="model-tool-btn-layout"
-            onClick={handleToggleAllCollapsed}
-            title={
-              collapsedTableNames.size === tables.length
-                ? "Expandir todas las tablas para ver sus columnas"
-                : "Colapsar todas las tablas a solo cabeceras"
-            }
-          >
-            <ChevronsUpDown size={12} />
-            <span>{collapsedTableNames.size === tables.length ? "Expandir Todo" : "Colapsar Todo"}</span>
-          </button>
-
-          {/* Toggle Compact Mode */}
-          <button
-            className={`model-action-btn ${isCompactMode ? "toggle-active" : "secondary"}`}
-            onClick={() => setIsCompactMode((c) => !c)}
-            title={
-              isCompactMode
-                ? "Modo Compacto Activo: Mostrando únicamente claves relacionadas. Clic para ver todas las columnas."
-                : "Modo Detallado Activo: Mostrando todas las columnas. Clic para compactar."
-            }
-          >
-            {isCompactMode ? <Minimize2 size={12} /> : <Eye size={12} />}
-            <span>{isCompactMode ? "Compacto" : "Detallado"}</span>
-          </button>
-
-          {/* Auto-Detect Relations */}
-          <button
-            className={`model-action-btn ${suggestedCandidates.length > 0 ? "active-sug" : "secondary"}`}
-            onClick={handleAutoDetectRelations}
-            title="Analiza claves primarias y foráneas coincidentes y sugiere conexiones"
-          >
-            <Wand2 size={12} color="#f59e0b" />
-            <span>Auto-Detectar</span>
-          </button>
-
-          {/* Star Schema Layout */}
-          <button
-            className="model-tool-btn-layout"
-            onClick={handleStarLayout}
-            title="Distribuir radialmente en órbitas concéntricas sin solapamiento"
-          >
-            <Sparkles size={11} color="#cca700" />
-            <span>Estrella</span>
-          </button>
-
-          {/* Cascade Layout */}
-          <button
-            className="model-tool-btn-layout"
-            onClick={handleCascadeLayout}
-            title="Distribuir en cascada multinivel: Dimensiones arriba, Hechos abajo"
-          >
-            <GitBranch size={11} color="#4ec9b0" />
-            <span>Cascada</span>
-          </button>
-
-          {/* New Relation Modal */}
-          <button
-            className="model-action-btn primary"
-            onClick={onOpenJoinModal}
-            disabled={tables.length < 2}
-            title="Abrir asistente de relación asistido"
-          >
-            <Plus size={13} />
-            <span>Nueva Relación</span>
-          </button>
+          {/* Grupo 3 · Asistentes del modelo */}
+          <div className="model-btn-group" role="group" aria-label="Asistentes del modelo">
+            <button
+              className="model-btn"
+              onClick={() => setShowExplanationModal(true)}
+              title="Aprende cómo interactúan tus tablas: Explicación didáctica de dimensiones, hechos y relaciones (Sin tecnicismos)"
+            >
+              <BookOpen size={13} />
+              <span>Explicar</span>
+            </button>
+            <button
+              className={`model-btn ${suggestedCandidates.length > 0 ? "is-active" : ""}`}
+              onClick={handleAutoDetectRelations}
+              title="Analiza claves primarias y foráneas coincidentes y sugiere conexiones"
+            >
+              <Wand2 size={13} />
+              <span>Auto-Detectar</span>
+            </button>
+          </div>
         </div>
       </div>
 

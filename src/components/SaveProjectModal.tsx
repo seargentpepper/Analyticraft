@@ -32,6 +32,12 @@ export const SaveProjectModal: React.FC<SaveProjectModalProps> = ({
   );
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setNameInput(projectName.replace(/\.analyticraft$/i, "") || "Mi_Proyecto_Analyticraft");
+    }
+  }, [isOpen, projectName]);
+
   if (!isOpen) return null;
 
   const handleFolderSave = async () => {

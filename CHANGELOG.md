@@ -4,6 +4,50 @@ Todas las modificaciones notables, adiciones funcionales y mejoras de diseño de
 
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/), y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2026-10-26
+
+### Lienzo Libre y Experiencia de Usuario (UI / Frontend)
+- **Lienzo Libre con Coordenadas Persistentes (`FloatingCard.tsx`, `canvasLayout.ts`):**
+  - Implementado sistema de anidación y libre posicionamiento donde las tarjetas flotan libremente con coordenadas `{ x, y, w, h }`.
+  - Soporte de arrastre reactivo desde la cabecera con ajuste magnético a cuadrícula de 10px (*snap-to-grid*) y redimensionamiento bidireccional desde tiradores perimetrales y de esquina.
+  - Las coordenadas se serializan dentro de cada objeto `ChartConfig.layout` y se preservan al guardar y reabrir sesiones en disco.
+  - Algoritmo de empaquetado automático (`findFreeSlot`, `ensureLayouts`) que migra transparentemente gráficos preexistentes sin solapamiento destructivo.
+- **Doomscroll y Protección de Exploración en Panel Campos:**
+  - Configurado contenedor de desplazamiento fluido con `min-height: 0` y `flex-shrink: 0` en `.pbi-panel-scroll`.
+  - Los contenidos internos de las tarjetas jamás se recortan o truncan al expandir múltiples tablas.
+- **Aislamiento y Ventana Flotante de Relaciones (JOINs):**
+  - Desacopladas las vistas relacionales virtuales del listado principal de tablas base para eliminar duplicaciones y tablas artificiales con 0 columnas.
+  - Implementado botón rectangular dedicado al pie del panel Campos con indicador de conteo (`relations-count-chip`).
+  - Al hacer clic, se abre una ventana flotante responsive con cabecera, listado de enlaces con tipo de JOIN, eliminación y botón de cierre (`X` y atajo `Escape`).
+- **Depuración de la Barra en Vista de Modelo (Principios Gestalt):**
+  - Removidos botones redundantes ("Exportar Síntesis (.md)", "Compacto/Detallado" y "Nueva Relación") de la barra horizontal del modelo.
+  - Estandarizada la altura de todos los botones a 28px con tipografía uniforme, agrupados en 3 bloques delimitados por proximidad y región común: *Zoom* (Alejar, %, Acercar, Ajustar), *Disposición* (Organizar, Estrella, Cascada, Expandir/Colapsar) y *Asistentes* (Explicar, Auto-Detectar).
+  - El botón "Nueva Relación" fue reubicado de forma canónica en la cinta superior dentro de la pestaña **Modelado** en su grupo propio **Relaciones**.
+- **Reactividad Universal del Indicador de Cambios (`isDirty`):**
+  - Activación inmediata del indicador visual (`•`) ante cualquier movimiento de tarjeta, cambio de tema, asignación de campos, mutación de filtros o borrado.
+- **Buscador en Vivo del Segmentador:**
+  - Búsqueda reactiva en DuckDB sin el límite ciego de 50 registros previos, permitiendo filtrado instantáneo en memoria.
+
+### Exactitud Analítica y Motor de Datos (DuckDB-WASM)
+- **Filtros Numéricos Tipados (`queryBuilder.ts`):**
+  - Reemplazo de conversiones a `VARCHAR` por `TRY_CAST(... AS DOUBLE)` y literales numéricos directos en operadores `>` y `<`, resolviendo el error analítico donde `'10' < '2'` evaluaba como verdadero.
+- **Orden Cronológico en Series Temporales:**
+  - Consultas de gráficos de líneas y áreas aplican automáticamente `ORDER BY dimension ASC`, manteniendo la coherencia cronológica en análisis temporales.
+- **Preservación Segura de Enteros Grandes (`bigint`):**
+  - Helper `safeNumericOrBigInt` en `src/lib/duckdb.ts` para evitar pérdidas de precisión sobre `Number.MAX_SAFE_INTEGER`.
+- **Atomicidad Transaccional (Hot Swap y Relaciones):**
+  - Reemplazo en caliente de fuentes CSV mediante tabla intermedia temporal de staging (`__temp_staging_`), validando integridad antes de sustituir la tabla activa.
+- **Concurrencia Determinista en Vista de Datos:**
+  - Token de cancelación `isCurrent` para ignorar respuestas asíncronas desfasadas y cláusula `ORDER BY` determinista en paginación.
+
+### Calidad, Seguridad y Testing
+- **Expansión de la Suite Vitest:**
+  - 30 pruebas unitarias automatizadas (`tests/canvasLayout.test.ts`, `tests/queryBuilder.test.ts`, `tests/projectStorage.test.ts`, `tests/themes.test.ts`, `tests/chartOptions.test.ts`, `tests/exporter.test.ts`) pasando al 100%.
+- **Limpieza de Dependencias y CSP:**
+  - Desinstalación total de `papaparse` y configuración estricta de Content Security Policy en `src-tauri/tauri.conf.json`.
+
+---
+
 ## [0.8.3] - 2026-10-25
 
 ### Suite de Pruebas Unitarias Automatizadas (Vitest)

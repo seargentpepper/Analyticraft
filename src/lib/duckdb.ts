@@ -44,6 +44,7 @@ export interface TableInfo {
   rowCount: number;
   columns: ColumnSchema[];
   lastUpdated: string;
+  isView?: boolean;
 }
 
 // In-memory registry of raw CSV contents for project packaging and offline portability
@@ -67,13 +68,6 @@ export async function registerCSVFile(
 ): Promise<TableInfo> {
   const { db, conn } = await getDuckDB();
 
-  try {
-    const text = await file.text();
-    rawCsvCache.set(tableName, { fileName: file.name, content: text });
-  } catch (err) {
-    console.warn("No se pudo almacenar en caché el texto sin formato del CSV:", file.name, err);
-  }
-
   await db.registerFileHandle(
     file.name,
     file,
@@ -81,12 +75,25 @@ export async function registerCSVFile(
     true
   );
 
-  await conn.query(`DROP TABLE IF EXISTS "${tableName}"`);
+  // Atomic Hot Swap: Load into a staging table first
+  const stagingTable = `__temp_staging_${tableName}_${Date.now()}`;
   await conn.query(
-    `CREATE TABLE "${tableName}" AS SELECT * FROM read_csv_auto('${file.name}')`
+    `CREATE TABLE "${stagingTable}" AS SELECT * FROM read_csv_auto('${file.name.replace(/'/g, "''")}')`
   );
 
-  const schemaResult = await conn.query(`DESCRIBE "${tableName}"`);
+  // Drop original and rename staging table
+  await conn.query(`DROP TABLE IF EXISTS "${tableName.replace(/"/g, '""')}"`);
+  await conn.query(`ALTER TABLE "${stagingTable}" RENAME TO "${tableName.replace(/"/g, '""')}"`);
+
+  // Update raw cache only after successful table creation
+  try {
+    const text = await file.text();
+    rawCsvCache.set(tableName, { fileName: file.name, content: text });
+  } catch (err) {
+    console.warn("No se pudo almacenar en caché el texto sin formato del CSV:", file.name, err);
+  }
+
+  const schemaResult = await conn.query(`DESCRIBE "${tableName.replace(/"/g, '""')}"`);
   const columns: ColumnSchema[] = [];
 
   for (let i = 0; i < schemaResult.numRows; i++) {
@@ -127,6 +134,16 @@ export async function registerCSVFile(
   };
 }
 
+export function safeNumericOrBigInt(val: unknown): any {
+  if (typeof val === "bigint") {
+    if (val <= BigInt(Number.MAX_SAFE_INTEGER) && val >= BigInt(Number.MIN_SAFE_INTEGER)) {
+      return Number(val);
+    }
+    return val.toString();
+  }
+  return val;
+}
+
 export async function executeQuery(sql: string): Promise<Record<string, any>[]> {
   const { conn } = await getDuckDB();
   const arrowResult = await conn.query(sql);
@@ -138,7 +155,7 @@ export async function executeQuery(sql: string): Promise<Record<string, any>[]> 
     const row: Record<string, any> = {};
     for (const field of fields) {
       const val = arrowResult.getChild(field)?.get(i);
-      row[field] = typeof val === "bigint" ? Number(val) : val;
+      row[field] = safeNumericOrBigInt(val);
     }
     rows.push(row);
   }
@@ -205,7 +222,38 @@ export async function createVirtualRelationView(
 
 export async function dropVirtualRelationView(viewName: string): Promise<void> {
   const { conn } = await getDuckDB();
-  await conn.query(`DROP VIEW IF EXISTS "${viewName}"`);
+  await conn.query(`DROP VIEW IF EXISTS "${viewName.replace(/"/g, '""')}"`);
+}
+
+export async function introspectViewColumns(viewName: string): Promise<ColumnSchema[]> {
+  try {
+    const { conn } = await getDuckDB();
+    const schemaResult = await conn.query(`DESCRIBE "${viewName.replace(/"/g, '""')}"`);
+    const columns: ColumnSchema[] = [];
+    for (let i = 0; i < schemaResult.numRows; i++) {
+      const colName = String(schemaResult.getChild("column_name")?.get(i));
+      const colType = String(schemaResult.getChild("column_type")?.get(i)).toUpperCase();
+      let simpleType: "string" | "number" | "date" | "boolean" = "string";
+      if (
+        colType.includes("INT") ||
+        colType.includes("FLOAT") ||
+        colType.includes("DOUBLE") ||
+        colType.includes("DECIMAL") ||
+        colType.includes("NUMERIC") ||
+        colType.includes("REAL")
+      ) {
+        simpleType = "number";
+      } else if (colType.includes("DATE") || colType.includes("TIME") || colType.includes("TIMESTAMP")) {
+        simpleType = "date";
+      } else if (colType.includes("BOOL")) {
+        simpleType = "boolean";
+      }
+      columns.push({ name: colName, type: simpleType });
+    }
+    return columns;
+  } catch {
+    return [];
+  }
 }
 
 export async function registerCSVContent(

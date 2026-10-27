@@ -3,6 +3,7 @@ import ReactECharts from "echarts-for-react";
 import { ChartConfig, GlobalFilter, CardTheme, DraggedFieldPayload } from "../types/dashboard";
 import { executeQuery } from "../lib/duckdb";
 import { getTheme } from "../lib/themes";
+import { buildChartSQL } from "../lib/queryBuilder";
 import {
   accentColor,
   buildChartOption,
@@ -84,82 +85,11 @@ export const ChartCard: React.FC<ChartCardProps> = ({
       setError(null);
 
       try {
-        // 1. Global filters targeting this table
-        const activeGlobals = globalFilters.filter(
-          (f) => f.enabled && f.tableName === config.tableName && f.value.trim() !== ""
-        );
-
-        // 2. Local filters defined in this visual
-        const activeLocalsList = (config.localFilters || []).filter(
-          (lf) => lf.enabled && lf.columnName && lf.value.trim() !== ""
-        );
-
-        // 3. Fallback legacy local filter
-        const hasLegacyLocal =
-          (!config.localFilters || config.localFilters.length === 0) &&
-          Boolean(config.filterCol && config.filterVal && config.filterVal.trim() !== "");
-
-        const conditions: string[] = [];
-
-        for (const f of activeGlobals) {
-          // If this visual is itself a slicer on this column, don't filter out its own options!
-          if (config.type === "slicer" && f.columnName === config.dimensionCol) {
-            continue;
-          }
-          const col = `"${f.columnName.replace(/"/g, '""')}"`;
-          if (f.operator === "LIKE") {
-            conditions.push(`CAST(${col} AS VARCHAR) ILIKE '%${f.value.replace(/'/g, "''")}%'`);
-          } else {
-            conditions.push(`CAST(${col} AS VARCHAR) ${f.operator} '${f.value.replace(/'/g, "''")}'`);
-          }
-        }
-
-        for (const lf of activeLocalsList) {
-          const col = `"${lf.columnName.replace(/"/g, '""')}"`;
-          if (lf.operator === "LIKE") {
-            conditions.push(`CAST(${col} AS VARCHAR) ILIKE '%${lf.value.replace(/'/g, "''")}%'`);
-          } else {
-            conditions.push(`CAST(${col} AS VARCHAR) ${lf.operator} '${lf.value.replace(/'/g, "''")}'`);
-          }
-        }
-
-        if (hasLegacyLocal) {
-          const col = `"${config.filterCol!.replace(/"/g, '""')}"`;
-          conditions.push(`CAST(${col} AS VARCHAR) ILIKE '%${config.filterVal!.replace(/'/g, "''")}%'`);
-        }
-
-        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-
-        let sql = "";
-        const sanitizedTable = `"${config.tableName.replace(/"/g, '""')}"`;
-        const sanitizedDim = `"${config.dimensionCol.replace(/"/g, '""')}"`;
-        const sanitizedMetric = config.metricCol ? `"${config.metricCol.replace(/"/g, '""')}"` : sanitizedDim;
-
-        if (config.type === "kpi") {
-          sql = `SELECT ${config.aggregation}(${sanitizedMetric}) as metric FROM ${sanitizedTable} ${whereClause}`;
-        } else if (config.type === "slicer") {
-          sql = `
-            SELECT 
-              CAST(${sanitizedDim} AS VARCHAR) as dimension, 
-              COUNT(*) as metric 
-            FROM ${sanitizedTable} 
-            ${whereClause}
-            GROUP BY ${sanitizedDim} 
-            ORDER BY metric DESC 
-            LIMIT 50
-          `;
-        } else {
-          sql = `
-            SELECT 
-              ${sanitizedDim} as dimension, 
-              ${config.aggregation}(${sanitizedMetric}) as metric 
-            FROM ${sanitizedTable} 
-            ${whereClause}
-            GROUP BY ${sanitizedDim} 
-            ORDER BY metric DESC 
-            LIMIT 25
-          `;
-        }
+        const sql = buildChartSQL({
+          config,
+          globalFilters,
+          slicerSearch,
+        });
 
         const rows = await executeQuery(sql);
         if (isMounted) {
@@ -188,6 +118,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
     JSON.stringify(config.localFilters),
     globalFilters,
     refreshTrigger,
+    slicerSearch,
   ]);
 
   const chartOption = useMemo(
@@ -295,7 +226,15 @@ export const ChartCard: React.FC<ChartCardProps> = ({
         </div>
       </div>
 
-      <div style={{ flex: 1, position: "relative" }}>
+      <div
+        style={{
+          flex: 1,
+          position: "relative",
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {loading && (
           <div
             style={{
@@ -448,7 +387,8 @@ export const ChartCard: React.FC<ChartCardProps> = ({
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              height: "200px",
+              flex: 1,
+              minHeight: 120,
             }}
           >
             <div
@@ -540,7 +480,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
         )}
 
         {!loading && !error && config.type === "table" && (
-          <div style={{ maxHeight: "240px", overflowY: "auto" }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <table
               style={{
                 width: "100%",
@@ -588,7 +528,7 @@ export const ChartCard: React.FC<ChartCardProps> = ({
         {!loading && !error && isEchart && (
           <ReactECharts
             option={chartOption}
-            style={{ height: config.type === "rings" ? "210px" : "240px", width: "100%" }}
+            style={{ flex: "1 1 0", height: "auto", minHeight: 140, width: "100%" }}
             opts={{ renderer: "canvas" }}
             notMerge
           />
