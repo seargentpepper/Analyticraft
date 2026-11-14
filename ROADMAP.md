@@ -1,181 +1,233 @@
-# 🗺️ Roadmap de Analyticraft - Próximos Cambios (Coming Next)
+# 🗺️ Roadmap de Analyticraft - Próximas Versiones Clave (v0.9.0 → v8.9.0)
 
-Este documento traza la hoja de ruta activa y los próximos desarrollos técnicos y funcionales de **Analyticraft**, desde la versión actual hasta el 100% de madurez de la suite.
+Este documento traza la hoja de ruta activa y las próximas **versiones clave** de **Analyticraft**, distribuyendo la complejidad de manera equitativa desde el primer hito de madurez desktop (`v1.0.0`) hasta la culminación total de la plataforma independiente en la versión **`v8.9.0`**.
 
-- **Estado Actual del Proyecto:** Versión `v0.8.3` (Estable)
-- **Próximo Hito Inmediato:** Versión `v0.8.4` (Saneamiento de Deuda Técnica, Exactitud Analítica y Resiliencia de Ciclo de Vida)
-- **Hito Posterior:** Versión `v0.9.0` (Lienzo Libre, Cuadrícula Magnética y Snap-to-Grid)
-- **Plan Maestro de Intervención:** Consulta **[PLAN_INTERVENCION_v0_8_4.md](./PLAN_INTERVENCION_v0_8_4.md)** para el desglose en 5 iteraciones.
-- **Historial de Trabajo Completado (Done):** Para consultar las fases completadas (Fases 1 a 8.3), consulta **[ROADMAP_DONE.md](./ROADMAP_DONE.md)**.
-- **Registro Detallado de Versiones:** Consulta **[CHANGELOG.md](./CHANGELOG.md)**.
+- **Estado Actual del Proyecto:** Versión `v0.8.4` (Estable)
+- **Primer Hito de Madurez Desktop:** Versión `v1.0.0` (Lienzo Avanzado, Páginas Múltiples y Marcadores)
+- **Versión Final de Cierre (100%):** Versión `v8.9.0` (Suite Ejecutiva Completa sobre Núcleo Rust, CLI, MCP e IA Local)
+- **Historial de Versiones Completadas (Done):** Consulta **[CHANGELOG.md](./CHANGELOG.md)** (`v0.1.0` a `v0.8.4`).
 
-> **Regla de Desarrollo para Desarrolladores y LLMs:** Ninguna fase implementa cambios visuales sin su contraparte de motor de datos y viceversa. Antes de codificar cualquier fase, consulta la guía de contratos técnicos y diagramas de flujo en [docs/Página 6 Arquitectura de UI y Contratos de Backend](./docs/Página%206%20Arquitectura%20de%20UI%20y%20Contratos%20de%20Backend%20(Guía%20para%20Desarrolladores%20y%20LLMs).md).
+> **Regla de Desarrollo para Desarrolladores y LLMs:** Ninguna versión implementa cambios visuales sin su contraparte de motor de datos y viceversa. Antes de codificar cualquier hito, consulta la guía de contratos técnicos y diagramas de flujo en [docs/Página 6 Arquitectura de UI y Contratos de Backend](./docs/Página%206%20Arquitectura%20de%20UI%20y%20Contratos%20de%20Backend%20(Guía%20para%20Desarrolladores%20y%20LLMs).md).
 
 ---
 
-## Índice de Próximas Fases (Coming Next)
+## Índice de Próximas Versiones Clave
 
-1. [Fase 8.4: Saneamiento de Deuda Técnica, Exactitud Analítica y Ciclo de Vida (Meta Inmediata: v0.8.4)](#fase-84-saneamiento-de-deuda-técnica-exactitud-analítica-y-ciclo-de-vida-meta-inmediata-v084)
-2. [Fase 9: Lienzo Libre con Cuadrícula Magnética y Menú Flotante de Alineación (Hito v0.9.0)](#fase-9-lienzo-libre-con-cuadrícula-magnética-y-menú-flotante-de-alineación-hito-v090)
-3. [Fase 10: Navegación de Páginas Múltiples y Marcadores (Bookmarks)](#fase-10-navegación-de-páginas-múltiples-y-marcadores-bookmarks)
-4. [Fase 11: Medidas Analíticas Reutilizables y Columnas Calculadas (DAX simplificado en SQL)](#fase-11-medidas-analíticas-reutilizables-y-columnas-calculadas-dax-simplificado-en-sql)
-5. [Fase 12: Jerarquía Temporal Automática y Dimensión Calendario](#fase-12-jerarquía-temporal-automática-y-dimensión-calendario)
-6. [Fase 13: Filtrado Cruzado Bidireccional entre Visuales (Cross-Filtering)](#fase-13-filtrado-cruzado-bidireccional-entre-visuales-cross-filtering)
-7. [Fase 14: Catálogo Extendido de Visualizaciones Analíticas](#fase-14-catálogo-extendido-de-visualizaciones-analíticas)
-8. [Fase 15: Perfeccionamiento de Estilos Apple (Metas en Anillos y Superación del 100%)](#fase-15-perfeccionamiento-de-estilos-apple-metas-en-anillos-y-superación-del-100)
-9. [Fase 16: Conectividad Multifuente y Power Query Ligero](#fase-16-conectividad-multifuente-y-power-query-ligero)
-10. [Fase 17: Vigilancia Automática de Archivos en Disco y Persistencia .ddb](#fase-17-vigilancia-automática-de-archivos-en-disco-y-persistencia-ddb)
-11. [Fase 18: Suite de Distribución y Exportación Ejecutiva (100% de Madurez)](#fase-18-suite-de-distribución-y-exportación-ejecutiva-100-de-madurez)
+1. [v0.9.0 — Lienzo Avanzado, Alineación y Desacoplamiento Base de UI](#v090--lienzo-avanzado-alineación-y-desacoplamiento-base-de-ui)
+2. [v1.0.0 — Madurez Desktop: Páginas Múltiples, Marcadores y Pruebas de Componentes](#v100--madurez-desktop-páginas-múltiples-marcadores-y-pruebas-de-componentes)
+3. [v2.0.0 — Filtrado Cruzado Bidireccional y Catálogo Analítico Extendido](#v200--filtrado-cruzado-bidireccional-y-catálogo-analítico-extendido)
+4. [v3.0.0 — Inteligencia Geoespacial con MapLibre GL JS (Online y Offline)](#v300--inteligencia-geoespacial-con-maplibre-gl-js-online-y-offline)
+5. [v4.0.0 — Vista `Semantycs`, Medidas Reutilizables y Dimensión Calendario](#v400--vista-semantycs-medidas-reutilizables-y-dimensión-calendario)
+6. [v5.0.0 — Vista `SQL Shortcuts`: Constructor Visual Secuencial estilo Apple Shortcuts](#v500--vista-sql-shortcuts-constructor-visual-secuencial-estilo-apple-shortcuts)
+7. [v6.0.0 — ETL Power Query Ligero, Multifuente Local y Persistencia `.ddb`](#v600--etl-power-query-ligero-multifuente-local-y-persistencia-ddb)
+8. [v7.0.0 — Automatización ELT: File Watcher Nativo y Sidecar `analyticraft-sync`](#v700--automatización-elt-file-watcher-nativo-y-sidecar-analyticraft-sync)
+9. [v8.0.0 — Núcleo DuckDB en Rust (`src-tauri`) y Modo CLI (`analyticraft-cli`)](#v800--núcleo-duckdb-en-rust-src-tauri-y-modo-cli-analyticraft-cli)
+10. [v8.5.0 — Puente MCP y `Chatview` con Ollama Local (Anti-Alucinaciones)](#v850--puente-mcp-y-chatview-con-ollama-local-anti-alucinaciones)
+11. [v8.9.0 — Suite de Distribución Ejecutiva y Cierre Integral del Proyecto](#v890--suite-de-distribución-ejecutiva-y-cierre-integral-del-proyecto)
+12. [Estrategia Transversal de Estabilidad y Calidad de UI](#estrategia-transversal-de-estabilidad-y-calidad-de-ui)
 
 ---
 
-### Fase 8.4: Saneamiento de Deuda Técnica, Exactitud Analítica y Ciclo de Vida (Meta Inmediata: v0.8.4)
-> *Detalle e iteraciones técnicas desglosadas en el [Plan de Intervención v0.8.4](./PLAN_INTERVENCION_v0_8_4.md).*
+## v0.9.0 — Lienzo Avanzado, Alineación y Desacoplamiento Base de UI
+
+> *Perfecciona el lienzo libre introducido en `v0.8.4` y sienta la base modular para escalar la interfaz sin regresiones.*
+
 - 🖥️ **UI / Frontend:**
-  - [x] **Reactividad Universal del Indicador de Cambios (`isDirty`):** Cualquier cambio en configuración visual, temas, filtros o Drag & Drop enciende de inmediato el indicador de guardado pendiente `•` (A-01).
-  - [x] **Diálogo Protector de Carga de Proyectos:** Solicitud de confirmación ante cambios pendientes al abrir archivos o carpetas, con reseteo total de estados visuales y selección (A-02).
-  - [x] **Sincronización Reactiva de Modales y Vistas:** Forzado de props sincronizadas en `SaveProjectModal` (nombre) y `ModelView` (posiciones entre proyectos) (M-04, M-05).
-  - [x] **Buscador en Vivo del Segmentador:** Búsqueda reactiva en DuckDB sin el límite ciego de 50 registros iniciales (M-06).
-  - [x] **Aislamiento Limpio de Vistas Relacionales:** Desacopladas de la lista de tablas base para no contaminar el panel. Se accede a ellas mediante botón rectangular al pie del panel con ventana flotante responsive y tecla de cierre Esc (A-07).
-  - [x] **Lienzo Libre con Coordenadas Persistentes:** Tarjetas anidables y flotantes con arrastre y redimensionado libre (`{ x, y, w, h }`), ajuste magnético a cuadrícula de 10px y persistencia en guardado/apertura de proyectos.
-  - [x] **Doomscroll sin Recortes en Panel Campos:** Contenedor de scroll infinito (`min-height: 0`, `flex-shrink: 0`) que impide que las tarjetas o columnas queden truncadas al expandir múltiples tablas.
-  - [x] **Depuración de Barra en Vista de Modelo (Principios Gestalt):** Eliminados botones redundantes ("Exportar Síntesis (.md)", "Compacto/Detallado", "Nueva Relación"). Botones restantes estandarizados a 28px de altura y agrupados por proximidad y región común (Zoom, Disposición, Asistentes).
-  - [x] **Reubicación Canónica de "Nueva Relación":** Trasladada a la cinta superior dentro de la pestaña `Modelado` en su propio grupo `Relaciones`.
-- ⚙️ **Backend / Motor de Datos:**
-  - [x] **Exactitud Numérica en Filtros SQL:** Eliminación de conversiones a `VARCHAR` en operadores `>` y `<`; comparaciones numéricas tipadas estrictas con `TRY_CAST(... AS DOUBLE)` (A-03).
-  - [x] **Orden Cronológico en Series Temporales:** Gráficos de líneas y áreas ordenados por dimensión ascendente (`ORDER BY dim ASC`), reservando `ORDER BY metric DESC` para categorías (M-01).
-  - [x] **Preservación Segura de Enteros Grandes (`bigint`):** Soporte seguro para valores superiores a `MAX_SAFE_INTEGER` con helper `safeNumericOrBigInt` (M-02).
-  - [x] **Hot Swap y Modificación de Relaciones Atómicas:** Reemplazo transaccional de tablas y vistas usando tablas temporales antes de descartar la versión previa (A-06, M-07).
-  - [x] **Exportación Confiable y Offline:** Espera activa a finalización de queries antes de exportar HTML, título real de proyecto y recursos embebidos sin dependencia de CDN (A-04, D-04).
-  - [x] **Concurrencia y Orden Determinista en Vista de Datos:** Token de cancelación `isCurrent` y orden determinista en `SELECT * ... ORDER BY ... LIMIT ... OFFSET ...` (M-08, M-09).
-- 🧪 **Calidad y Testing:**
-  - [x] **Expansión de Suite Vitest:** 30 pruebas automáticas cubriendo filtros SQL, orden cronológico, ciclo de vida, sanitización y geometría de lienzo libre (`tests/canvasLayout.test.ts`) (D-01).
-  - [x] **Depuración de Dependencias:** Desinstalación de `papaparse` del `package.json` y configuración de CSP en `tauri.conf.json` (D-06, D-07).
-
----
-
-### Fase 9: Lienzo Libre con Cuadrícula Magnética y Menú Flotante de Alineación (Hito v0.9.0)
-- 🖥️ **UI / Frontend:**
-  - [ ] **Lienzo con Cuadrícula Magnética (Snap-to-Grid):** Arrastre y redimensionamiento libre de tarjetas con guías de alineación inteligentes y magnetismo a paso configurable (8px / 16px).
-  - [ ] **Menú Flotante de Alineación:** Barra contextual al seleccionar una o múltiples tarjetas (alinear a la izquierda, centro, derecha, arriba, abajo, distribuir horizontal y verticalmente).
+  - [ ] **Guías Inteligentes y Cuadrícula Configurable:** Guías magnéticas dinámicas al alinear tarjetas entre sí y paso de cuadrícula configurable (`8px` / `10px` / `16px`).
+  - [ ] **Menú Flotante de Alineación:** Barra contextual al seleccionar una o múltiples tarjetas (alinear izquierda, centro, derecha, arriba, abajo, distribuir horizontal/verticalmente y control de capas `zIndex`).
   - [ ] **Banner Superior de KPIs:** Contenedor superior desacoplado para tarjetas numéricas destacadas con distribución automática.
-- ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Esquema de Posicionamiento:** Adición de `{ x: number, y: number, w: number, h: number, zIndex: number }` al objeto `ChartConfig`.
-  - [ ] **Algoritmo de Alineación Geométrica:** Funciones puras para recalcular posiciones relativas sin solapamiento destructivo.
-  - [ ] **Serialización en Proyecto:** Persistencia de coordenadas y dimensiones exactas en el archivo `.analyticraft`.
+- ⚙️ **Backend / Arquitectura:**
+  - [ ] **Algoritmo de Alineación Geométrica:** Funciones puras en `src/lib/canvasLayout.ts` para recalcular posiciones relativas, distribución y `zIndex` sin solapamiento destructivo.
+  - [ ] **Encapsulamiento Inicial de Estilos y Estado:** Inicio de migración de `src/App.css` a CSS Modules (`*.module.css`) en componentes estables (`ChartCard`, `FloatingCard`, `ModelView`, `FieldsPanel`) y extracción de hooks/subcomponentes desde `src/App.tsx`.
 
 ---
 
-### Fase 10: Navegación de Páginas Múltiples y Marcadores (Bookmarks)
+## v1.0.0 — Madurez Desktop: Páginas Múltiples, Marcadores y Pruebas de Componentes
+
+> *Primer gran hito de madurez para uso diario en producción: reportes ejecutivos multipágina, marcadores de presentación y exportación HTML multipágina.*
+
 - 🖥️ **UI / Frontend:**
-  - [ ] **Barra Inferior de Páginas:** Pestañas (`Página 1`, `Página 2`, `+ Nueva Página`), menú contextual de pestaña (renombrar, duplicar, eliminar) y slider de zoom.
-  - [ ] **Panel Lateral de Marcadores (Bookmarks):** Lista de capturas guardadas (ej. `P1 - Vista General`, `P1 - Filtro Mayoristas`) con botón `Add` y botón `Presentar`.
+  - [ ] **Barra Inferior de Páginas:** Pestañas (`Página 1`, `Página 2`, `+ Nueva Página`), menú contextual de pestaña (renombrar, duplicar, eliminar) y slider de zoom del lienzo.
+  - [ ] **Panel Lateral de Marcadores (Bookmarks):** Lista de capturas guardadas (ej. `P1 - Vista General`, `P1 - Filtro Mayoristas`) con botón `Add` y modo `Presentar`.
 - ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Modelo Jerárquico de Proyecto:** Evolución a `AnalyticraftProject -> pages: PageConfig[]`, donde cada página posee su propio array de `charts: ChartConfig[]`.
+  - [ ] **Modelo Jerárquico de Proyecto:** Evolución a `AnalyticraftProject -> pages: PageConfig[]`, donde cada página posee su propio arreglo de `charts: ChartConfig[]`.
   - [ ] **Estado de Marcadores:** Captura snapshot de filtros activos, visibilidad de tarjetas y página activa en `bookmarks: BookmarkState[]`.
   - [ ] **Exportador HTML Multipágina:** Compilación del archivo `.html` autocontenido con navegación reactiva de pestañas y marcadores offline.
+- 🧪 **Calidad:**
+  - [ ] **Pruebas de Componentes (`@testing-library/react`):** Validación de montaje, selectores críticos y contratos interactivos de paneles y modales.
 
 ---
 
-### Fase 11: Medidas Analíticas Reutilizables y Columnas Calculadas (DAX simplificado en SQL)
+## v2.0.0 — Filtrado Cruzado Bidireccional y Catálogo Analítico Extendido
+
+> *Convierte tableros estáticos en análisis exploratorio multidireccional con visualizaciones corporativas avanzadas.*
+
 - 🖥️ **UI / Frontend:**
-  - [ ] **Diálogo "Nueva Medida":** Modal accesible desde Ribbon (`Modelado > Nueva Medida`) con editor de expresiones SQL asistido y autocompletado de funciones (`SUM`, `AVG`, `COUNT`, `ROUND`, etc.).
-  - [ ] **Icono Distintivo en FIELDS:** Las medidas creadas se listan en el panel de campos con un icono de calculadora (`🧮`) arrastrable a cualquier gráfico.
-- ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Validador de Expresiones en DuckDB:** Test de ejecución en tiempo real (`EXPLAIN SELECT {expression} FROM {table}`) antes de guardar la medida.
-  - [ ] **Inyector Dinámico de CTEs:** En tiempo de consulta de la tarjeta, las medidas se inyectan como `WITH medidas AS (...)` o columnas derivadas en la query SQL vectorizada de DuckDB.
-
----
-
-### Fase 12: Jerarquía Temporal Automática y Dimensión Calendario
-- 🖥️ **UI / Frontend:**
-  - [ ] **Árbol de Fechas Desplegable:** Las columnas de tipo fecha (`DATE`, `TIMESTAMP`) en el panel FIELDS se expanden automáticamente en `Año › Trimestre › Mes › Día`.
-  - [ ] **Generador de Calendario en Ribbon:** Botón `Crear Tabla Calendario` con selector de rango de fechas de inicio y fin.
-- ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Generador de Dimensión de Calendario en DuckDB:** Ejecución de `CREATE TABLE "calendario" AS SELECT d::DATE as fecha, year(d) as año, quarter(d) as trimestre, monthname(d) as mes, day(d) as dia FROM generate_series(DATE '...', DATE '...', INTERVAL 1 DAY) tbl(d)`.
-  - [ ] **Funciones SQL de Agrupación Temporal:** Extracción de partes de fecha para granularidad dinámica en los gráficos.
-
----
-
-### Fase 13: Filtrado Cruzado Bidireccional entre Visuales (Cross-Filtering)
-> *Nota: El objeto visual tipo Segmentador (Slicer) ya fue completado e integrado en la Fase 6 (v0.6.1). Esta fase aborda la interactividad multitarjeta cruzada al hacer clic sobre elementos de visualizaciones analíticas.*
-- 🖥️ **UI / Frontend:**
-  - [ ] **Filtrado Cruzado Reactivo al Clic:** Clic sobre una barra, sector de dona o punto de línea resalta o filtra instantáneamente todas las demás tarjetas de la página.
-  - [ ] **Indicador Visual de Selección Activa:** Atenuación de barras o puntos no seleccionados en el gráfico emisor y distintivo de filtro cruzado en tarjetas receptoras.
-  - [ ] **Control de Interacciones:** Interruptor para definir si un gráfico específico participa o se aísla del filtrado cruzado.
-- ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Bus de Filtrado Cruzado Bidireccional:** Estado `crossFilterState: { sourceChartId, column, selectedValue }`.
-  - [ ] **Inyector de Cláusulas WHERE Compuestas:** Modificación reactiva de las consultas DuckDB agregando condiciones `AND "columna" = 'valor'` a todas las tarjetas receptoras.
-  - [ ] **Caché en Memoria de Consultas:** Almacenamiento volátil de resultados para respuestas analíticas en <8ms sin re-consultar DuckDB si los parámetros no cambiaron.
-
----
-
-### Fase 14: Catálogo Extendido de Visualizaciones Analíticas
-- 🖥️ **UI / Frontend:**
+  - [ ] **Filtrado Cruzado Bidireccional (Cross-Filtering):** Clic sobre una barra, sector de dona o punto de línea resalta o filtra instantáneamente las demás tarjetas de la página, con atenuación de elementos no seleccionados en el emisor y control de interacciones para aislar tarjetas específicas.
   - [ ] **Gráfico Combinado (Barras + Líneas):** Soporte para doble eje Y (ej. Ventas en barras y Margen % en línea).
   - [ ] **Gráfico de Cascada (Waterfall):** Visualización de pérdidas y ganancias (P&L), incrementos y decrementos acumulativos.
   - [ ] **Treemap y Gráfico de Embudo (Funnel):** Distribución jerárquica de categorías y tasas de conversión por etapas.
   - [ ] **Tabla Matriz / Pivote:** Cuadrícula con filas, columnas, subtotales y totales generales colapsables.
+  - [ ] **Perfeccionamiento Estilos Apple en Anillos:** Metas cuantitativas configurables en el inspector `Format` (fijas o enlazadas a medida SQL) y renderizado de segunda vuelta con sombra volumétrica y resplandor neón (`shadowBlur: 12`) al superar el 100%.
 - ⚙️ **Backend / Motor de Datos:**
-  - [ ] **ECharts Option Builders Dedicados:** Nuevos generadores modulares en `src/lib/chartOptions.ts`.
-  - [ ] **Consultas Agregadas Complejas:** Uso de cláusulas SQL avanzadas en DuckDB como `PIVOT`, `ROLLUP` y `GROUPING SETS` para calcular totales y subtotales de matrices en una sola pasada.
+  - [ ] **Bus y Caché de Filtrado Cruzado:** Estado `crossFilterState: { sourceChartId, column, selectedValue }` con caché volátil en memoria para respuestas en <8ms sin re-consultar DuckDB si los parámetros no cambian.
+  - [ ] **Builders Modulares y SQL Avanzado:** Nuevos generadores en `src/lib/chartOptions.ts`, series polares duales, consulta `ROUND((val / goal) * 100, 1)` y cláusulas `PIVOT`, `ROLLUP` y `GROUPING SETS` en DuckDB.
 
 ---
 
-### Fase 15: Perfeccionamiento de Estilos Apple (Metas en Anillos y Superación del 100%)
+## v3.0.0 — Inteligencia Geoespacial con MapLibre GL JS (Online y Offline)
+
+> *Cartografía interactiva a nivel de calle, colonia y proximidad a 60fps en WebGL sin API keys ni costos de licencia.*
+
 - 🖥️ **UI / Frontend:**
-  - [ ] **Metas Configurables por Anillo:** Campo en el inspector `Format` para fijar meta cuantitativa (ej. `Meta: 10,000 pasos`) o enlazar con una medida SQL.
-  - [ ] **Efecto de Superación del 100%:** Renderizado de segunda vuelta con sombra volumétrica y resplandor neón cuando el valor excede la meta.
-  - [ ] **Paletas Numbers Adaptativas:** Aplicación de tipografías semibold y fondos sutiles inspirados en macOS/iPadOS.
+  - [ ] **Tarjeta de Mapa Detallado (`maplibre-gl` + `@vis.gl/react-maplibre`):** Renderizado WebGL declarativo en React 19 alineado a la paleta oscura *Workbench Industrial* (`#1e1e1e`).
+  - [ ] **4 Drop-Zones en Inspector `Build`:** `Latitud`, `Longitud`, `Categoría / Color` y `Tamaño / Peso`.
+  - [ ] **Tres Modos Visuales Geoespaciales:**
+    - *Agrupación Inteligente (Clustering):* Agrupa cientos de puntos cercanos (ej. alumnos o clientes en una colonia) en un círculo con conteo que se desglosa al hacer zoom.
+    - *Mapa de Calor (Heatmap):* Visualización continua de zonas calientes sin depender de límites administrativos.
+    - *Círculos de Radio / Proximidad:* Clic en una ubicación candidata (ej. sede de evento o sucursal) para proyectar un radio configurable (`2 km`, `5 km`) y contabilizar registros dentro del área.
+  - [ ] **Mapas Base Duales (Cero Costo de API):**
+    - *Modo Online:* Teselas vectoriales gratuitas de **OpenFreeMap** o estilos **Positron / Dark Matter de CARTO** (sin registro ni API key).
+    - *Modo 100% Offline:* Lectura directa de archivos locales `.pmtiles` (extracto de ciudad/estado) almacenados dentro de la subcarpeta `/data/` del proyecto.
 - ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Series Polares Duales en ECharts:** Algoritmo en `chartOptions.ts` que desacopla la serie de base (0 a 100%) y genera una sub-serie con `shadowBlur: 12` y `shadowColor` para la fracción que supera el 100%.
-  - [ ] **Cálculo de Proporción en DuckDB:** Consulta SQL que calcula el porcentaje normalizado: `ROUND((val / goal) * 100, 1)`.
+  - [ ] **Pipeline DuckDB → GeoJSON en Memoria:** Consulta reactiva `SELECT lat, lon, categoria, COUNT(*) ... WHERE [filtros_activos]` convertida a objeto `GeoJSON` en memoria + cálculo SQL de distancia **Haversine** en DuckDB para filtros por radio en kilómetros.
+  - [ ] **Compatibilidad con Exportación `.html`:** Empaquetado de `maplibre-gl` y los datos `GeoJSON` en el HTML autocontenido (con mapa detallado de calles cuando hay internet y vista de puntos, agrupaciones y filtros funcional sin conexión).
 
 ---
 
-### Fase 16: Conectividad Multifuente y Power Query Ligero
-- 🖥️ **UI / Frontend:**
-  - [ ] **Diálogo Multifuente "Obtener Datos":** Conectores visuales para Excel (`.xlsx`, selección de hoja), archivos Parquet, carpetas completas de CSVs y SQLite local.
-  - [ ] **Editor de Pasos de Transformación (Power Query Ligero):** Panel visual que lista pasos aplicados (Filtrar filas, Renombrar columna, Cambiar tipo de dato, Rellenar nulos, Quitar duplicados).
+## v4.0.0 — Vista `Semantycs`, Medidas Reutilizables y Dimensión Calendario
+
+> *Inaugura la capa semántica del negocio como 4ª vista del Riel Lateral y estandariza métricas y jerarquías temporales.*
+
+- 🖥️ **UI / Frontend (Nueva Vista 4: `Semantycs`):**
+  - [ ] **4º Modo en Riel Lateral de Vistas:** Acceso directo a **Semantycs** conservando la estética *Workbench Industrial*.
+  - [ ] **Editor y Bitácora Markdown con Plantillas:** Espacio para documentar reglas de negocio, glosarios de columnas, significado de códigos internos y referencias explícitas a nombres de Shortcuts (ej. *"Para analizar morosidad, usar siempre `Cartera_Vencida_30d`"*). Funciona como documentación viva para humanos y escudo determinista contra alucinaciones de IA.
+- 🖥️ **UI / Frontend (Medidas y Dimensión Temporal):**
+  - [ ] **Diálogo "Nueva Medida":** Modal en `Modelado > Nueva Medida` con editor SQL asistido, autocompletado de funciones (`SUM`, `AVG`, `COUNT`, `ROUND`, etc.) e icono de calculadora (`🧮`) en el panel `FIELDS`.
+  - [ ] **Árbol de Fechas Desplegable:** Columnas `DATE` / `TIMESTAMP` en `FIELDS` expandibles automáticamente en `Año › Trimestre › Mes › Día`.
+  - [ ] **Generador de Tabla Calendario:** Botón en Ribbon con selector de rango de fechas de inicio y fin.
 - ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Extensiones Nativas de DuckDB:** Carga de extensiones en memoria (`read_parquet`, conector SQLite).
-  - [ ] **Pipeline de Transformaciones Declarativas:** Estructura JSON de pasos reproducibles en el proyecto; DuckDB ejecuta la secuencia de transformaciones en orden sin alterar el archivo físico de origen.
+  - [ ] **Persistencia Semántica en `.analyticraft`:** Subcarpeta `/semantycs/` dentro de la carpeta de proyecto empaquetado (junto a `/data/` y `/backups/`), almacenando archivos planos `.md` incluidos en los respaldos automáticos.
+  - [ ] **Validador e Inyector de Medidas:** Validación en tiempo real con `EXPLAIN SELECT {expression} FROM {table}` e inyección de CTEs (`WITH medidas AS (...)`) en consultas de tarjetas.
+  - [ ] **Generador de Calendario en DuckDB:** `CREATE TABLE "calendario" AS SELECT d::DATE as fecha, year(d) as año, quarter(d) as trimestre, monthname(d) as mes, day(d) as dia FROM generate_series(DATE '...', DATE '...', INTERVAL 1 DAY) tbl(d)`.
 
 ---
 
-### Fase 17: Vigilancia Automática de Archivos en Disco y Persistencia .ddb
-- 🖥️ **UI / Frontend:**
-  - [ ] **Indicador de Sincronización en Barra de Estado:** Icono de nube local o disco ("Guardado automáticamente", "Cambios pendientes").
-  - [ ] **Conmutador de "Vigilancia de CSV" (File Watcher):** Opción para activar recarga en caliente automática al guardar el archivo fuente en disco.
-  - [ ] **Selector de Modo de Base de Datos:** Alternar entre DuckDB 100% en memoria volátil o archivo de base de datos local persistente (`.ddb`).
+## v5.0.0 — Vista `SQL Shortcuts`: Constructor Visual Secuencial estilo Apple Shortcuts
+
+> *Completa el Riel de Vistas lateral a **5 modos integrados** (`Informe`, `Datos`, `Modelo`, `SQL Shortcuts`, `Semantycs`) y convierte consultas ad-hoc en activos nombrados y reutilizables para UI, CLI y MCP.*
+
+- 🧭 **Decisión Arquitectónica Fundamental (Por qué Bloques Secuenciales y NO Nodos/Cables):**
+  - Se adopta una **lista vertical de bloques secuenciales estilo Apple Shortcuts** como interfaz principal (acompañada de pestaña dual SQL), **descartando un canvas infinito de nodos y cables tipo n8n**: evita el desorden visual (*spaghetti*), reduce la curva de aprendizaje para contadores y directivos, facilita la depuración paso a paso y evita duplicidad visual con la `Vista de Modelo` relacional ya existente.
+- 🖥️ **UI / Frontend (`SQL Shortcuts`):**
+  - [ ] **Tarjetas Secuenciales en Lenguaje Natural (`@dnd-kit/core` + `@dnd-kit/sortable` + Radix/Headless UI):** Lista vertical reordenable con línea conectora entre pasos y píldoras/selectores clicables (`#2d2d2d`):
+    - *Origen:* `Obtener registros de [Tabla ▾]`
+    - *Filtro:* `Filtrar donde [Columna ▾] [operador ▾] [Valor] + Añadir condición`
+    - *Cálculo:* `Crear columna calculada [Nombre] = [Columna] [operación ▾]`
+    - *Agrupación:* `Agrupar por [Columna ▾] y calcular [Agregación ▾] de [Columna ▾]`
+    - *Ordenar / Salida:* `Guardar resultado como [Variable / Vista]`
+  - [ ] **Selector Segmentado Dual `[ Visual ] | [ SQL ]`:** Sincronización en tiempo real de bloques a SQL. Si un usuario experto edita manualmente el SQL para usar funciones no cubiertas por bloques (ej. funciones de ventana `OVER()`), se muestra el aviso *"Editado manualmente en SQL"* y se bloquea la traducción inversa para evitar pérdida de lógica.
+  - [ ] **Variables Mágicas y Vista Previa por Bloque:** Menú contextual en selectores de valor (valor fijo, parámetro global `$Fecha_Corte` o salida de un bloque anterior) y botón *Play* por tarjeta para previsualizar las primeras 5 filas tras ese paso.
+  - [ ] **Materialización Transparente en `FIELDS`:**
+    - Shortcuts tipo **Tabla** (ej. `Resumen_Sucursales`) aparecen en `FIELDS` con icono distintivo (`⚡`), arrastrables a ECharts o MapLibre.
+    - Shortcuts tipo **Valor Único / KPI** (ej. `Ticket_Promedio_Global`) aparecen bajo carpeta de Medidas/Shortcuts para tarjetas KPI.
 - ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Vigilancia Nativa en Rust/Tauri:** Integración del crate `notify` en el backend Rust para monitorear el sistema de archivos del SO y emitir eventos IPC hacia el frontend cuando el CSV cambie.
-  - [ ] **Hot Swap Autónomo:** Al recibir el evento IPC, el frontend ejecuta silenciosamente el reemplazo atómico de la tabla en DuckDB sin interrumpir la sesión del analista.
+  - [ ] **Modelo Único AST JSON → Compilador CTE:** Cada Shortcut se persiste como árbol JSON (bloques visuales + SQL compilado + tipo `table | kpi`) dentro del proyecto `.analyticraft`; una función pura TypeScript compila los pasos a CTEs encadenados (`WITH paso_1 AS (...), paso_2 AS (...)`).
+  - [ ] **Vistas SQL Reactivas en DuckDB:** Materialización mediante `CREATE OR REPLACE VIEW`; reaccionan automáticamente a segmentadores del `Informe` y se recalculan al instante tras cualquier `Hot Swap (↻)`. Convive al 100% con el flujo directo CSV → ECharts.
 
 ---
 
-### Fase 18: Suite de Distribución y Exportación Ejecutiva (100% de Madurez)
-- 🖥️ **UI / Frontend:**
-  - [ ] **Menú de Exportación en Ribbon:** Opciones directas:
-    - 🌐 *Exportar HTML Interactivo* (Dashboard vivo sin dependencias).
-    - 📄 *Exportar Documento PDF* (Páginas vectoriales de alta definición).
-    - 📊 *Exportar Presentación PowerPoint (`.pptx`)* (Una diapositiva por página de reporte).
-    - 🖼️ *Exportar Imágenes HD (PNG / SVG)*.
-  - [ ] **Modal de Configuración de Exportación:** Selección de páginas a incluir, resolución, metadatos y encabezados de empresa.
-- ⚙️ **Backend / Motor de Datos:**
-  - [ ] **Compilador Offline Autocontenido:** Generación de archivo HTML con DuckDB-Wasm ligero embebido que conserva filtros cruzados y segmentadores funcionando sin internet.
-  - [ ] **Generador Nativo de PDF/PPTX:** Procesamiento en Tauri/Rust para generar archivos PDF y PPTX con tipografía nítida y gráficos vectoriales embebidos.
-  - [ ] **Sanitización Estricta de Seguridad:** Escapado obligatorio de todos los textos, nombres de columnas y categorías (`escapeHtml` y `safeJson`) para neutralizar cualquier vector de inyección XSS.
+## v6.0.0 — ETL Power Query Ligero, Multifuente Local y Persistencia `.ddb`
+
+> *Amplía `SQL Shortcuts` con el catálogo completo de transformaciones ETL estilo Power Query y abre la puerta a archivos nativos locales más allá del CSV.*
+
+- 🔧 **Extensión ETL en `SQL Shortcuts` (Power Query Ligero):**
+  - [ ] **Bloques de Limpieza Reproducible:** Eliminar filas vacías, quitar duplicados, rellenar nulos, parsear texto a formato fecha/número, dividir y renombrar columnas (receta repetible con un clic ante datos nuevos).
+  - [ ] **Bloque `Merge` (Combinar Consultas):** Cruzar dos tablas o resultados de otros Shortcuts mediante columna clave común (equivalente visual a `BUSCARV` sin cables).
+  - [ ] **Bloque `Append` (Anexar Consultas):** Apilar una tabla debajo de otra cuando comparten el mismo esquema de columnas (ej. consolidar reportes mensuales enero + febrero).
+  - [ ] **Bloque `SQL Personalizado` (Híbrido):** Insertar código SQL arbitrario en medio de una secuencia visual sin obligar a convertir todo el flujo a modo código.
+- 🖥️ **UI / Frontend (Multifuente y Motor):**
+  - [ ] **Diálogo Multifuente "Obtener Datos":** Importación guiada de Excel (`.xlsx` con selector de hoja), archivos `.parquet`, carpetas completas de CSVs y bases SQLite locales.
+  - [ ] **Selector de Modo de Base de Datos:** Alternar entre DuckDB 100% en memoria volátil o archivo local persistente `.ddb`.
+- ⚙️ **Backend / Calidad:**
+  - [ ] **Extensiones Nativas y Pipeline Declarativo:** Carga en DuckDB de `read_parquet` y conector SQLite ejecutando secuencias ETL sin alterar archivos físicos de origen.
+  - [ ] **Pruebas de Regresión Visual Automatizadas (Playwright):** Suite E2E con comparación de capturas de pantalla sobre lienzo libre, modelo relacional y vistas nuevas en CI/CD.
+
+---
+
+## v7.0.0 — Automatización ELT: File Watcher Nativo y Sidecar `analyticraft-sync`
+
+> *Permite tableros actualizados casi en tiempo real mediante arquitectura modular satélite, manteniendo el núcleo de Analyticraft ligero, offline-safe y estrictamente de solo lectura.*
+
+- ⚙️ **Etapa 1 — File Watcher Nativo en Tauri (Rust `notify` crate):**
+  - [ ] Vigilancia de archivos en el directorio `/data/` del proyecto desde el backend Rust; al detectar cambios externos (ej. generados por scripts propios de Python o R), emite un evento IPC al frontend para disparar silenciosamente el `Hot Swap (↻)` atómico sin interrumpir al analista.
+- 🦀 **Etapa 2 — Conector Sidecar Ligero en Rust (`analyticraft-sync`):**
+  - [ ] Ejecutable satélite **opcional e independiente** (<5 MB, consumo mínimo de RAM) que el usuario solo instala si requiere sincronización externa; quien usa CSVs locales conserva la app base libre de peso.
+  - [ ] **Bucle ELT Configurable (`sync.toml` / `sync.json`):** Cada intervalo (ej. `120s`), se conecta a **Google Sheets** (exportación CSV), bases SQL (**MySQL, PostgreSQL, SQL Server**), Excel compartido o APIs web, limpia columnas y normaliza dimensiones.
+  - [ ] **Escritura Atómica y Tolerancia a Fallos:** Escribe el resultado en `/data/` como archivo `.tmp` y lo renombra atómicamente a `.csv` para impedir lecturas corruptas; si falla la red o el origen remoto, el último CSV válido y los respaldos en `/backups/` siguen intactos preservando la **Fuente Única de Verdad**.
+- 🖥️ **Etapa 3 — UI de Orígenes y Estado de Sincronización:**
+  - [ ] **Modal Opcional de Orígenes Externos:** Interfaz para pegar enlace de Google Sheets o credenciales SQL y delegar la ejecución a `analyticraft-sync` sin editar archivos de texto.
+  - [ ] **Indicador y Conmutador en Barra de Estado:** Estado de sincronización ("Sincronizado", "Cambios detectados") y toggle de *Vigilancia de CSV* en `/data/`.
+
+---
+
+## v8.0.0 — Núcleo DuckDB en Rust (`src-tauri`) y Modo CLI (`analyticraft-cli`)
+
+> *Desacopla el motor de lectura del proyecto hacia Rust para habilitar automatización desde terminal y preparar el ecosistema de agentes.*
+
+- 🦀 **Backend Core (Rust / `src-tauri`):**
+  - [ ] **Núcleo Unificado de Proyecto `.analyticraft`:** Lectura compartida desde Rust de la carpeta del proyecto (`/data/`, `/semantycs/`, definiciones JSON de `SQL Shortcuts`, esquema DuckDB y `/backups/`).
+- ⌨️ **Modo CLI (`analyticraft-cli`):**
+  - [ ] **Ejecución Headless por Nombre de Shortcut:** Ejecución de flujos guardados sin abrir interfaz gráfica, evitando consultas SQL largas o propensas a error en terminal:
+    `analyticraft run proyecto.analyticraft --shortcut "Ventas_Netas_Trimestre"`
+  - [ ] **Salida Estructurada:** Exportación directa de resultados a stdout (`JSON` / `CSV`) o generación automatizada de instantáneas para pipelines programados.
+
+---
+
+## v8.5.0 — Puente MCP y `Chatview` con Ollama Local (Anti-Alucinaciones)
+
+> *Integra inteligencia artificial 100% local que habla exactamente el mismo lenguaje interno del proyecto (`Semantycs` + `SQL Shortcuts`), sin fugas de datos a la nube.*
+
+- 🤖 **Puente MCP y Panel `Chatview`:**
+  - [ ] **Conexión Nativa con Ollama Local (`localhost:11434`):** Panel `Chatview` integrado en la estética *Workbench Industrial* para consultar datos en lenguaje natural de forma 100% privada.
+  - [ ] **Escudo Anti-Alucinaciones (`Semantycs` + Esquema):** Antes de que Ollama o el servidor MCP respondan, leen automáticamente los archivos `.md` de `/semantycs/` junto con el esquema activo de DuckDB para comprender códigos internos, reglas de negocio y filtros obligatorios.
+  - [ ] **Herramientas Deterministas (`SQL Shortcuts` vía MCP):** Exposición de los Shortcuts validados del proyecto como herramientas directas e invocables por la IA (ej. `ejecutar_shortcut("Alumnos_Por_Colonia")`), garantizando cifras exactas sin alucinaciones en cálculos complejos.
+  - [ ] **Acciones Asistidas en el Informe:** Capacidad para ejecutar consultas seguras en DuckDB, crear nuevas vistas o insertar tarjetas visuales directamente en la página activa del `Informe`.
+
+---
+
+## v8.9.0 — Suite de Distribución Ejecutiva y Cierre Integral del Proyecto
+
+> *Culminación al 100% de Analyticraft como software BI independiente: exportación ejecutiva multiformato, seguridad verificada y calidad integral.*
+
+- 📤 **UI / Frontend (Menú y Modal de Exportación Unificado en Ribbon):**
+  - [ ] **Exportar HTML Interactivo Autocontenido:** Paquete único multipágina con ECharts, `maplibre-gl` + `GeoJSON` embebido, marcadores, filtros cruzados y segmentadores operativos sin internet.
+  - [ ] **Exportar Documento PDF Vectorial:** Páginas de alta definición con tipografía nítida generadas desde Tauri/Rust.
+  - [ ] **Exportar Imágenes HD (`Webp estatico y animado` / `SVG`):** Selección de páginas, resolución, metadatos y encabezados corporativos.
+- 🛡️ **Seguridad y Cierre de Calidad:**
+  - [ ] **Sanitización Estricta de Seguridad:** Escapado obligatorio (`escapeHtml`, `safeJson`) en textos, columnas, notas semánticas y exportaciones para neutralizar vectores XSS.
+  - [ ] **Cobertura Integral Verificada:** Suite verde de extremo a extremo combinando pruebas unitarias (Vitest), pruebas de componentes (React Testing Library) y regresión visual (Playwright).
+
+---
+
+## Estrategia Transversal de Estabilidad y Calidad de UI
+
+Para escalar de forma segura desde `v0.8.4` hasta `v8.9.0` (incluyendo las vistas `Semantycs`, `SQL Shortcuts`, `MapLibre` y `Chatview`), se aplican transversalmente cuatro pilares de ingeniería:
+
+1. **Encapsulamiento con CSS Modules (`*.module.css`):** Aislamiento progresivo fuera de `src/App.css` para prevenir colisiones de estilos globales.
+2. **Desacoplamiento de `src/App.tsx`:** Extracción de subcomponentes, reducers y hooks especializados para contener el *Blast Radius* entre vistas.
+3. **Pruebas de Componentes (`@testing-library/react`):** Verificación de contratos visuales e interactivos en React desde `v1.0.0`.
+4. **Regresión Visual E2E (Playwright):** Comparación automatizada de capturas de pantalla en CI/CD desde `v6.0.0`.
 
 ---
 
 ## Resumen de Cobertura Integral del Proyecto
 
-| Área del Sistema | Fases Completadas (Done en [ROADMAP_DONE.md](./ROADMAP_DONE.md)) | Próximas Fases Planificadas (Coming Next) | Resultado al 100% |
-|---|---|---|---|
-| **Arquitectura de Interfaz Power BI** | Fases 3, 4, 5, 5.1, 6 | Fase 8.4 (Modales y Estados), Fases 9, 10 | Experiencia idéntica a Power BI Desktop (Ribbon, Vistas, Paneles, Lienzo Libre y Páginas). |
-| **Gobernanza y Filosofía de Datos** | Fases 1, 2, 4, 8.2 | Fase 8.4 (Hot Swap atómico), Fases 16, 17 | Vista de Datos Read-Only, CSV como fuente de verdad, Hot Swap atómico y pasos reproducibles. |
-| **Modelado Semántico y Relacional** | Fases 7, 8, 8.1, 8.2 | Fase 8.4 (Vistas en catálogo), Fases 11, 12 | Diagrama relacional visual con auto-detección, ergonomía anti-colisión, medidas analíticas y dimensión calendario. |
-| **Interactividad y Visualizaciones** | Fases 1, 2, 6 (Slicer) | Fase 8.4 (Orden temporal y filtros numéricos), Fases 13, 14, 15 | Segmentadores interactivos, filtrado cruzado multitarjeta, visuales analíticos avanzados y estilos Apple. |
-| **Calidad de Software y Testing** | Fase 8.3 (Vitest) | Fase 8.4 (Vitest ampliado + higiene de deps), Fase 18 | Suite automatizada de pruebas unitarias, sanitización estricta XSS y compilación reproducible. |
-| **Distribución y Exportación** | Fases 1, 2, 8.2 (Síntesis LLM) | Fase 8.4 (Exportación offline fidedigna), Fase 18 | Visor HTML interactivo sin internet, exportación Markdown para LLMs, PDFs vectoriales y PPTX ejecutivas. |
+| Área del Sistema                      | Versiones Completadas ([CHANGELOG.md](./CHANGELOG.md)) | Próximas Versiones Clave (`v0.9.0` → `v8.9.0`)                                                                   | Resultado Final en `v8.9.0`                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Arquitectura de Interfaz y Vistas** | `v0.5.0`, `v0.5.1`, `v0.6.0–0.6.1`, `v0.8.4`           | `v0.9.0`, `v1.0.0` (Páginas/Bookmarks), `v4.0.0` (`Semantycs`), `v5.0.0` (`SQL Shortcuts`)                       | Shell de 5 modos (`Informe`, `Datos`, `Modelo`, `SQL Shortcuts`, `Semantycs`), lienzo libre avanzado, páginas y marcadores. |
+| **Gobernanza, ETL y Conectividad**    | `v0.1.0`, `v0.2.0–0.4.0`, `v0.5.0`, `v0.8.2`, `v0.8.4` | `v5.0.0` (Bloques AST→CTE), `v6.0.0` (Merge/Append/XLSX/Parquet/.ddb), `v7.0.0` (`notify` + `analyticraft-sync`) | Vista de Datos *Read-Only*, recetas ETL estilo Apple Shortcuts/Power Query, File Watcher en `/data/` y sidecar ELT atómico. |
+| **Modelado Semántico y Relacional**   | `v0.7.0`, `v0.8.0`, `v0.8.1`, `v0.8.2`                 | `v4.0.0` (`/semantycs/*.md`, Medidas `EXPLAIN`, Calendario), `v5.0.0` (Shortcuts `⚡` en `FIELDS`)                | Grafo estrella con auto-detección, glosario Markdown anti-alucinación, medidas SQL y vistas reutilizables reactivas.        |
+| **Interactividad, Visuales y Mapas**  | `v0.1.0`, `v0.2.0–0.4.0`, `v0.6.1`, `v0.8.4`           | `v2.0.0` (Cross-Filtering, Cascada/Matriz/Anillos >100%), `v3.0.0` (`MapLibre GL JS` + `.pmtiles`)               | Filtrado cruzado <8ms, mapas WebGL con clustering/heatmap/radios Haversine offline, Waterfall/Matriz y estilos Apple.       |
+| **Automatización, CLI e IA Local**    | `v0.8.2` (Síntesis Markdown para LLMs)                 | `v8.0.0` (Núcleo Rust + `analyticraft-cli`), `v8.5.0` (Puente MCP + `Chatview` Ollama)                           | Ejecución headless por nombre de Shortcut y copiloto local protegido por `Semantycs` y herramientas MCP deterministas.      |
+| **Calidad, Seguridad y Distribución** | `v0.8.3` (Vitest), `v0.8.4` (CSP y 30 tests)           | `v0.9.0` (CSS Modules), `v1.0.0` (RTL), `v6.0.0` (Playwright), `v8.9.0` (HTML/PDF/PPTX/HD)                       | Pruebas unitarias + componentes + visuales, sanitización XSS estricta y suite completa de exportación ejecutiva offline.    |

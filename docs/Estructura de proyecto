@@ -1,0 +1,49 @@
+Analyticraft/
+├── package.json             # Scripts de npm, dependencias y configuración Node/Vite
+├── vite.config.ts           # Configuración de empaquetado frontend (Vite)
+├── tsconfig.json            # Configuración de TypeScript
+├── index.html               # Punto de entrada HTML del frontend
+│
+├── src/                     # FRONTEND (React + TypeScript)
+│   ├── main.tsx             # Bootstrap de React
+│   ├── App.tsx              # Componente principal, estado central y orquestador
+│   ├── App.css              # Estilos globales y temas
+│   ├── components/          # Componentes visuales e interactivos de UI
+│   │   ├── ChartCard.tsx            # Tarjeta y renderizador de gráficos (ECharts)
+│   │   ├── FieldsPanel.tsx          # Panel lateral de dimensiones y métricas
+│   │   ├── FloatingCard.tsx         # Ventanas/tarjetas flotantes
+│   │   ├── ModelExplanationModal.tsx# Modal explicativo del modelo de datos
+│   │   ├── ModelView.tsx            # Vista de modelado relacional (ER diagram / canvas)
+│   │   ├── OpenProjectModal.tsx     # Diálogo para abrir proyectos guardados
+│   │   ├── SaveProjectModal.tsx     # Diálogo para guardar proyectos
+│   │   └── VisualizationsPanel.tsx  # Catálogo de tipos de visualizaciones
+│   ├── lib/                 # Lógica de negocio, motor de datos y utilidades
+│   │   ├── canvasLayout.ts          # Algoritmos de ordenamiento/distribución de nodos
+│   │   ├── chartOptions.ts          # Generador de opciones para Apache ECharts
+│   │   ├── duckdb.ts                # Inicialización y ejecución de queries en DuckDB-WASM
+│   │   ├── exporter.ts              # Exportación (PNG, CSV, JSON, etc.)
+│   │   ├── modelSynthesis.ts        # Inferencia de esquemas y relaciones
+│   │   ├── projectStorage.ts        # Persistencia local de proyectos (localStorage / IndexedDB)
+│   │   ├── queryBuilder.ts          # Constructor dinámico de consultas SQL
+│   │   ├── sampleData.ts            # Datos de prueba de demostración
+│   │   └── themes.ts                # Paletas de colores y temas para gráficos
+│   └── types/               # Definiciones de tipos e interfaces de TypeScript
+│
+├── src-tauri/               # BACKEND NATIVO (Rust + Tauri v2)
+│   ├── Cargo.toml           # Dependencias de Rust y metadata del ejecutable
+│   ├── tauri.conf.json      # Configuración de ventanas, permisos y build nativo
+│   ├── capabilities/        # Definición de permisos de Tauri v2
+│   └── src/
+│       ├── main.rs          # Entrada del ejecutable de Rust
+│       └── lib.rs           # Handlers, comandos nativos (`invoke_handler`) y plugins
+│
+├── tests/                   # Pruebas unitarias frontend con Vitest
+│   ├── canvasLayout.test.ts
+│   ├── chartOptions.test.ts
+│   ├── exporter.test.ts
+│   ├── projectStorage.test.ts
+│   ├── queryBuilder.test.ts
+│   └── themes.test.ts
+│
+├── docs/                    # Documentación y diagramas arquitectónicos
+└── Samples/                 # Archivos CSV/Parquet de muestra para importar
