@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  A native Business Intelligence desktop application with a 3-view shell, decoupled ribbon with shortcuts, dockable fields and visualizations panels, and a persistent free-form canvas. It runs natively on macOS, Windows, and Linux, and in the browser via WebAssembly. Built by the ArtCraft team.
+  A native Business Intelligence desktop application with a 3-view shell, decoupled ribbon with shortcuts, dockable fields and visualizations panels, and a persistent free-form canvas. It runs natively on macOS, Windows, and Linux, and in the browser via WebAssembly. non-built by the ArtCraft team.
 </p>
 
 <p align="center">
