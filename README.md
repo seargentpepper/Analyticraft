@@ -3,7 +3,7 @@
 Herramienta de Business Intelligence de escritorio, minimalista, *local-first* y de código abierto (Tauri v2 + DuckDB-WASM + React 19 + Apache ECharts 6) enfocada en PyMEs.
 
 > **Versión actual:** `v0.8.4` (Estable)  
-> **Presentación del producto, arquitectura visual y comparativa:** consulta la [Landing Page](./Landing-Pages/Index.html).
+> **Presentación del producto, arquitectura visual y comparativa:** consulta la [Landing Page](./docs/index.html).
 
 ---
 
