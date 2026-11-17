@@ -1,9 +1,40 @@
-# Analyticraft
+<p align="center">
+  <img src="logo.png" width="128" height="128" alt="Analyticraft icon: a duck">
+</p>
 
-Herramienta de Business Intelligence de escritorio, minimalista, *local-first* y de código abierto (Tauri v2 + DuckDB-WASM + React 19 + Apache ECharts 6) enfocada en PyMEs.
+<h1 align="center">Analyticraft</h1>
 
-> **Versión actual:** `v0.8.4` (Estable)  
-> **Presentación del producto, arquitectura visual y comparativa:** consulta la [Landing Page]([https://seargentpepper.github.io/Analyticraft/#flujo).
+<p align="center">
+  <b>Minimalist, local-first open-source desktop Business Intelligence tool for SMEs, rebuilt in Tauri, DuckDB-WASM, React, and Apache ECharts.</b>
+</p>
+
+<p align="center">
+  A native Business Intelligence desktop application with a 3-view shell, decoupled ribbon with shortcuts, dockable fields and visualizations panels, and a persistent free-form canvas. It runs natively on macOS, Windows, and Linux, and in the browser via WebAssembly. Built by the ArtCraft team.
+</p>
+
+<p align="center">
+  <img alt="Status: stable" src="https://img.shields.io/badge/status-stable-dac604?style=flat-square">
+  <img alt="DuckDB-WASM: 50%" src="https://img.shields.io/badge/DuckDB--WASM-50%25-blueviolet?style=flat-square">
+  <img alt="React 19 + TypeScript + Vite 8: 20%" src="https://img.shields.io/badge/React%2019%20%2B%20TS%20%2B%20Vite%208-20%25-blue?style=flat-square">
+  <img alt="Tauri v2 (Rust): 15%" src="https://img.shields.io/badge/Tauri%20v2%20(Rust)-15%25-orange?style=flat-square">
+  <img alt="Apache ECharts 6 + Lucide Icons: 15%" src="https://img.shields.io/badge/Apache%20ECharts%206-15%25-green?style=flat-square">
+  <br>
+  <a href="https://sonarcloud.io/"><img alt="Scanned by SonarCloud" src="https://img.shields.io/badge/Scanned_by-SonarCloud-4b9fd5?style=flat-square&logo=sonarqubecloud&logoColor=white"></a>
+  <a href="https://coderabbit.ai"><img alt="Reviewed by CodeRabbit" src="https://img.shields.io/coderabbit/prs/github/seargentpepper/analyticraft?style=flat-square&label=Reviewed%20by%20CodeRabbit&logo=coderabbit"></a>
+</p>
+
+<p align="center">
+  <a href="https://seargentpepper.github.io/Analyticraft/"><b>Analyticraft on seargentpepper.github.io</b></a> ·
+  <a href="https://getartcraft.com/">ArtCraft</a> ·
+  <a href="https://getartcraft.com/apps">All Crafting Apps</a>
+</p>
+
+<br>
+
+<p align="center">
+  <img src="docs/index.html" alt="Analyticraft workspace interface: showing the 3-view shell, interactive ECharts visualizer, and dockable data panels" width="100%">
+  <br><sub><b>The Analyticraft workspace</b>: interactive canvas, relational schema graphs, and real-time DuckDB vector queries · <code>pnpm run tauri dev</code></sub>
+</p>
 
 ---
 
