@@ -31,11 +31,6 @@
 
 <br>
 
-<p align="center">
-  <img src="docs/index.html" alt="Analyticraft workspace interface: showing the 3-view shell, interactive ECharts visualizer, and dockable data panels" width="100%">
-  <br><sub><b>The Analyticraft workspace</b>: interactive canvas, relational schema graphs, and real-time DuckDB vector queries · <code>pnpm run tauri dev</code></sub>
-</p>
-
 ---
 
 ## Resumen de Cobertura Completada
